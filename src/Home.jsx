@@ -15,11 +15,11 @@ export default function Home() {
   // -------------------------
   // Auth Handlers
   // -------------------------
-  const handleSignup = async (e) => {
+const handleSignup = async (e) => {
   e.preventDefault();
   const form = e.target;
-  const username = form.username.value.trim();
-  const email = form.email.value.trim();
+  const username = form.username.value;
+  const email = form.email.value;
   const password = form.password.value;
 
   try {
@@ -35,13 +35,10 @@ export default function Home() {
     const data = await res.json();
 
     if (res.ok) {
-      // Save JWT
       localStorage.setItem("token", data.access_token);
       const payload = JSON.parse(atob(data.access_token.split(".")[1]));
-      
-      // Set user and role
       setUser({ email, id: payload.sub });
-      setRole(payload.role); // always "customer"
+      setRole(payload.role);
       setPage("dashboard");
     } else {
       alert(data.detail || "Signup failed");
@@ -51,6 +48,7 @@ export default function Home() {
     alert("Server connection failed");
   }
 };
+
 
 const handleLogin = async (e) => {
   e.preventDefault();
