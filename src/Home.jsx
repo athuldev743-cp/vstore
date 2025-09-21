@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ShoppingCart, Store, Shield, User2 } from "lucide-react";
-import StoreAPI from "./api/StoreAPI"; // make sure default export
+import * as StoreAPI from "./api/StoreAPI";
 import "./Home.css";
 
 export default function Home() {
