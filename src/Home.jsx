@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ShoppingCart, Store, Shield, User2 } from "lucide-react";
-import * as StoreAPI from "./api/StoreAPI";
+import StoreAPI from "./api/StoreAPI"; // make sure default export
 import "./Home.css";
 
 export default function Home() {
@@ -12,14 +12,9 @@ export default function Home() {
   const [pendingVendors, setPendingVendors] = useState([]);
   const [vendorProducts, setVendorProducts] = useState([]);
 
-  const fetchVendorProducts = async () => {
-    if (role === "vendor" && user) {
-      const allProducts = await StoreAPI.listProducts();
-      const myProducts = allProducts.filter((p) => p.vendor_id === user.id);
-      setVendorProducts(myProducts);
-    }
-  };
-
+  // -------------------------
+  // Auth Handlers
+  // -------------------------
   const handleLogin = async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -28,25 +23,27 @@ export default function Home() {
 
     try {
       const res = await fetch(
-        "https://virtual-store-backed.onrender.com/users/login",
+        "https://virtual-store-backed.onrender.com/api/users/login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
         }
       );
+
       const data = await res.json();
+
       if (res.ok) {
         localStorage.setItem("token", data.access_token);
         const payload = JSON.parse(atob(data.access_token.split(".")[1]));
-        setRole(payload.role);
         setUser({ email, id: payload.sub });
+        setRole(payload.role);
         setPage("dashboard");
       } else {
         alert(data.detail || "Login failed");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Login error:", err);
       alert("Server connection failed");
     }
   };
@@ -60,14 +57,16 @@ export default function Home() {
 
     try {
       const res = await fetch(
-        "https://virtual-store-backed.onrender.com/users/signup",
+        "https://virtual-store-backed.onrender.com/api/users/signup",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, email, password }),
         }
       );
+
       const data = await res.json();
+
       if (res.ok) {
         localStorage.setItem("token", data.access_token);
         const payload = JSON.parse(atob(data.access_token.split(".")[1]));
@@ -78,38 +77,80 @@ export default function Home() {
         alert(data.detail || "Signup failed");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Signup error:", err);
       alert("Server connection failed");
     }
   };
 
+  // -------------------------
+  // Fetchers with return
+  // -------------------------
   const fetchProducts = async () => {
-    const data = await StoreAPI.listProducts();
-    setProducts(data);
+    try {
+      const data = await StoreAPI.listProducts();
+      setProducts(data);
+      return data;
+    } catch (err) {
+      console.error("Failed to fetch products:", err.message);
+      return [];
+    }
   };
 
   const fetchOrders = async () => {
-    const data = await StoreAPI.getOrders();
-    setOrders(data);
+    try {
+      const data = await StoreAPI.getOrders();
+      setOrders(data);
+      return data;
+    } catch (err) {
+      console.error("Failed to fetch orders:", err.message);
+      return [];
+    }
   };
 
   const fetchPendingVendors = async () => {
-    const data = await StoreAPI.listPendingVendors();
-    setPendingVendors(data);
+    try {
+      const data = await StoreAPI.listPendingVendors();
+      setPendingVendors(data);
+      return data;
+    } catch (err) {
+      console.error("Failed to fetch pending vendors:", err.message);
+      return [];
+    }
   };
 
+  const fetchVendorProducts = async () => {
+    if (role !== "vendor" || !user) return [];
+    try {
+      const allProducts = await StoreAPI.listProducts();
+      const myProducts = allProducts.filter((p) => p.vendor_id === user.id);
+      setVendorProducts(myProducts);
+      return myProducts;
+    } catch (err) {
+      console.error("Failed to fetch vendor products:", err.message);
+      return [];
+    }
+  };
+
+  // -------------------------
+  // Load dashboard data
+  // -------------------------
   useEffect(() => {
     if (page === "dashboard") {
-      fetchProducts();
-      fetchOrders();
-      fetchVendorProducts();
-      if (role === "admin") fetchPendingVendors();
+      const tasks = [fetchProducts(), fetchOrders()];
+      if (role === "vendor") tasks.push(fetchVendorProducts());
+      if (role === "admin") tasks.push(fetchPendingVendors());
+
+      Promise.allSettled(tasks).then((results) => {
+        results.forEach((r, i) => {
+          if (r.status === "rejected") console.error(`Task ${i} failed:`, r.reason);
+        });
+      });
     }
   }, [page, role, user]);
 
-  // -----------------
-  // Render Pages
-  // -----------------
+  // -------------------------
+  // Renderers
+  // -------------------------
   const renderLogin = () => (
     <div className="auth-container">
       <h2>Login</h2>
@@ -149,6 +190,9 @@ export default function Home() {
     </div>
   );
 
+  // -------------------------
+  // Dashboard render logic (customer/vendor/admin)
+  // -------------------------
   const renderCustomer = () => (
     <div>
       <h3>Products</h3>
@@ -169,27 +213,6 @@ export default function Home() {
       <button onClick={() => setPage("apply-vendor")}>Apply as Vendor</button>
     </div>
   );
-
-  const renderApplyVendor = () => {
-    const handleApply = async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const data = { name: form.name.value, whatsapp: form.whatsapp.value };
-      await StoreAPI.applyVendor(data);
-      alert("Applied! Wait for admin approval.");
-      setPage("dashboard");
-    };
-    return (
-      <div>
-        <h3>Apply as Vendor</h3>
-        <form onSubmit={handleApply}>
-          <input name="name" placeholder="Vendor Name" required />
-          <input name="whatsapp" placeholder="WhatsApp Number" required />
-          <button type="submit">Apply</button>
-        </form>
-      </div>
-    );
-  };
 
   const renderVendor = () => {
     const handleUpload = async (e) => {
@@ -281,6 +304,27 @@ export default function Home() {
       </ul>
     </div>
   );
+
+  const renderApplyVendor = () => {
+    const handleApply = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = { name: form.name.value, whatsapp: form.whatsapp.value };
+      await StoreAPI.applyVendor(data);
+      alert("Applied! Wait for admin approval.");
+      setPage("dashboard");
+    };
+    return (
+      <div>
+        <h3>Apply as Vendor</h3>
+        <form onSubmit={handleApply}>
+          <input name="name" placeholder="Vendor Name" required />
+          <input name="whatsapp" placeholder="WhatsApp Number" required />
+          <button type="submit">Apply</button>
+        </form>
+      </div>
+    );
+  };
 
   const renderDashboard = () => (
     <div className="dashboard">

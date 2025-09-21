@@ -1,109 +1,104 @@
-const BASE_URL = "https://virtual-store-backed.onrender.com";
+const BASE_URL = "https://virtual-store-backed.onrender.com/api/store";
 
+// Helper to get headers with token
+function authHeaders(isJson = true) {
+  const token = localStorage.getItem("token");
+  const headers = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (isJson) headers["Content-Type"] = "application/json";
+  return headers;
+}
+
+// -------------------------
+// Products
+// -------------------------
 export async function listProducts() {
-  const res = await fetch(`${BASE_URL}/store/products`);
-  return res.ok ? res.json() : [];
-}
-
-export async function getOrders() {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`${BASE_URL}/store/orders`, {
-    headers: { Authorization: `Bearer ${token}` },
+  const res = await fetch(`${BASE_URL}/products`, {
+    headers: authHeaders(false), // GET, no JSON body
   });
   return res.ok ? res.json() : [];
-}
-
-export async function listPendingVendors() {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`${BASE_URL}/store/vendors/pending`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.ok ? res.json() : [];
-}
-
-export async function placeOrder(productId, quantity = 1) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`${BASE_URL}/store/orders`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ product_id: productId, quantity }),
-  });
-  return res.json();
-}
-
-export async function applyVendor(data) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`${BASE_URL}/store/apply-vendor`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  return res.json();
 }
 
 export async function createProduct(data) {
-  const token = localStorage.getItem("token");
   const formData = new FormData();
-  formData.append("name", data.name);
-  formData.append("description", data.description);
-  formData.append("price", data.price);
-  formData.append("stock", data.stock);
-  formData.append("file", data.file);
-
-  const res = await fetch(`${BASE_URL}/store/products`, {
+  Object.entries(data).forEach(([key, value]) => {
+    if (value != null) formData.append(key, value);
+  });
+  const res = await fetch(`${BASE_URL}/products`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeaders(false), // formData → don't set JSON
     body: formData,
   });
   return res.json();
 }
 
 export async function updateProduct(productId, data) {
-  const token = localStorage.getItem("token");
   const formData = new FormData();
-  formData.append("name", data.name);
-  formData.append("description", data.description);
-  formData.append("price", data.price);
-  formData.append("stock", data.stock);
-  if (data.file) formData.append("file", data.file);
-
-  const res = await fetch(`${BASE_URL}/store/products/${productId}`, {
+  Object.entries(data).forEach(([key, value]) => {
+    if (value != null) formData.append(key, value);
+  });
+  const res = await fetch(`${BASE_URL}/products/${productId}`, {
     method: "PUT",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeaders(false),
     body: formData,
   });
   return res.json();
 }
 
 export async function deleteProduct(productId) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`${BASE_URL}/store/products/${productId}`, {
+  const res = await fetch(`${BASE_URL}/products/${productId}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeaders(),
+  });
+  return res.json();
+}
+
+// -------------------------
+// Orders
+// -------------------------
+export async function getOrders() {
+  const res = await fetch(`${BASE_URL}/orders`, { headers: authHeaders() });
+  return res.ok ? res.json() : [];
+}
+
+export async function placeOrder(productId, quantity = 1) {
+  const res = await fetch(`${BASE_URL}/orders`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ product_id: productId, quantity }),
+  });
+  return res.json();
+}
+
+// -------------------------
+// Vendors
+// -------------------------
+export async function listPendingVendors() {
+  const res = await fetch(`${BASE_URL}/vendors/pending`, { headers: authHeaders() });
+  return res.ok ? res.json() : [];
+}
+
+export async function applyVendor(data) {
+  const res = await fetch(`${BASE_URL}/apply-vendor`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(data),
   });
   return res.json();
 }
 
 export async function approveVendor(vendorId) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`${BASE_URL}/store/vendors/${vendorId}/approve`, {
+  const res = await fetch(`${BASE_URL}/vendors/${vendorId}/approve`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeaders(),
   });
   return res.json();
 }
 
 export async function rejectVendor(vendorId) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`${BASE_URL}/store/vendors/${vendorId}/reject`, {
+  const res = await fetch(`${BASE_URL}/vendors/${vendorId}/reject`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeaders(),
   });
   return res.json();
 }
