@@ -12,7 +12,6 @@ export default function Home() {
   const [pendingVendors, setPendingVendors] = useState([]);
   const [vendorProducts, setVendorProducts] = useState([]);
 
-  // Fetch vendor products
   const fetchVendorProducts = async () => {
     if (role === "vendor" && user) {
       const allProducts = await StoreAPI.listProducts();
@@ -21,7 +20,6 @@ export default function Home() {
     }
   };
 
-  // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -29,11 +27,14 @@ export default function Home() {
     const password = form.password.value;
 
     try {
-      const res = await fetch("http://localhost:8000/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        "https://virtual-store-backed.onrender.com/users/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("token", data.access_token);
@@ -46,10 +47,10 @@ export default function Home() {
       }
     } catch (err) {
       console.error(err);
+      alert("Server connection failed");
     }
   };
 
-  // Handle signup
   const handleSignup = async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -58,11 +59,14 @@ export default function Home() {
     const password = form.password.value;
 
     try {
-      const res = await fetch("http://localhost:8000/users/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
-      });
+      const res = await fetch(
+        "https://virtual-store-backed.onrender.com/users/signup",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password }),
+        }
+      );
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("token", data.access_token);
@@ -75,28 +79,25 @@ export default function Home() {
       }
     } catch (err) {
       console.error(err);
+      alert("Server connection failed");
     }
   };
 
-  // Fetch all products
   const fetchProducts = async () => {
     const data = await StoreAPI.listProducts();
     setProducts(data);
   };
 
-  // Fetch orders
   const fetchOrders = async () => {
     const data = await StoreAPI.getOrders();
     setOrders(data);
   };
 
-  // Fetch pending vendors (admin)
   const fetchPendingVendors = async () => {
     const data = await StoreAPI.listPendingVendors();
     setPendingVendors(data);
   };
 
-  // Load dashboard data
   useEffect(() => {
     if (page === "dashboard") {
       fetchProducts();
