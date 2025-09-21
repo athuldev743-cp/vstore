@@ -15,72 +15,76 @@ export default function Home() {
   // -------------------------
   // Auth Handlers
   // -------------------------
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const email = form.email.value;
-    const password = form.password.value;
-
-    try {
-      const res = await fetch(
-        "https://virtual-store-backed.onrender.com/api/users/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-        localStorage.setItem("token", data.access_token);
-        const payload = JSON.parse(atob(data.access_token.split(".")[1]));
-        setUser({ email, id: payload.sub });
-        setRole(payload.role);
-        setPage("dashboard");
-      } else {
-        alert(data.detail || "Login failed");
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      alert("Server connection failed");
-    }
-  };
-
   const handleSignup = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const username = form.username.value;
-    const email = form.email.value;
-    const password = form.password.value;
+  e.preventDefault();
+  const form = e.target;
+  const username = form.username.value.trim();
+  const email = form.email.value.trim();
+  const password = form.password.value;
 
-    try {
-      const res = await fetch(
-        "https://virtual-store-backed.onrender.com/api/users/signup",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, email, password }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-        localStorage.setItem("token", data.access_token);
-        const payload = JSON.parse(atob(data.access_token.split(".")[1]));
-        setUser({ email, id: payload.sub });
-        setRole(payload.role);
-        setPage("dashboard");
-      } else {
-        alert(data.detail || "Signup failed");
+  try {
+    const res = await fetch(
+      "https://virtual-store-backed.onrender.com/api/users/signup",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
       }
-    } catch (err) {
-      console.error("Signup error:", err);
-      alert("Server connection failed");
+    );
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // Save JWT
+      localStorage.setItem("token", data.access_token);
+      const payload = JSON.parse(atob(data.access_token.split(".")[1]));
+      
+      // Set user and role
+      setUser({ email, id: payload.sub });
+      setRole(payload.role); // always "customer"
+      setPage("dashboard");
+    } else {
+      alert(data.detail || "Signup failed");
     }
-  };
+  } catch (err) {
+    console.error("Signup error:", err);
+    alert("Server connection failed");
+  }
+};
+
+const handleLogin = async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const email = form.email.value.trim();
+  const password = form.password.value;
+
+  try {
+    const res = await fetch(
+      "https://virtual-store-backed.onrender.com/api/users/login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (res.ok) {
+      localStorage.setItem("token", data.access_token);
+      const payload = JSON.parse(atob(data.access_token.split(".")[1]));
+      setUser({ email, id: payload.sub });
+      setRole(payload.role); // could be "customer", "vendor", or "admin"
+      setPage("dashboard");
+    } else {
+      alert(data.detail || "Login failed");
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Server connection failed");
+  }
+};
+
 
   // -------------------------
   // Fetchers with return
