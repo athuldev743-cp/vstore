@@ -1,96 +1,93 @@
+import axios from "axios";
+
 const BASE_URL = "https://virtual-store-backed.onrender.com/api/store";
 
 // -------------------------
-// Helper to get headers with token
+// Axios instance with token
 // -------------------------
-function authHeaders(isJson = true) {
+const API = axios.create({
+  baseURL: BASE_URL,
+});
+
+// Attach token automatically
+API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  const headers = {};
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  if (isJson) headers["Content-Type"] = "application/json";
-  return headers;
-}
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-// -------------------------
-// Generic fetch wrapper
-// -------------------------
-async function apiFetch(url, options = {}, isJson = true) {
-  try {
-    const res = await fetch(url, { ...options });
-
-    if (res.status === 401) {
-      // Token expired / invalid
+// Handle 401 globally
+API.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    if (error.response?.status === 401) {
       localStorage.removeItem("token");
       alert("Session expired. Please login again.");
       window.location.reload();
-      return null;
     }
-
-    return isJson ? res.json() : res;
-  } catch (err) {
-    console.error("API fetch error:", err);
-    alert("Server connection failed");
-    return null;
+    return Promise.reject(error);
   }
-}
+);
 
 // -------------------------
 // Products
 // -------------------------
-export async function listProducts() {
-  return (await apiFetch(`${BASE_URL}/products`, { headers: authHeaders(false) }, true)) || [];
-}
+export const listProducts = async () => {
+  const res = await API.get("/products");
+  return res.data || [];
+};
 
-export async function createProduct(data) {
+export const createProduct = async (data) => {
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => value != null && formData.append(key, value));
-  return apiFetch(`${BASE_URL}/products`, { method: "POST", headers: authHeaders(false), body: formData }, true);
-}
+  const res = await API.post("/products", formData, { headers: { "Content-Type": "multipart/form-data" } });
+  return res.data;
+};
 
-export async function updateProduct(productId, data) {
+export const updateProduct = async (productId, data) => {
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => value != null && formData.append(key, value));
-  return apiFetch(`${BASE_URL}/products/${productId}`, { method: "PUT", headers: authHeaders(false), body: formData }, true);
-}
+  const res = await API.put(`/products/${productId}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+  return res.data;
+};
 
-export async function deleteProduct(productId) {
-  return apiFetch(`${BASE_URL}/products/${productId}`, { method: "DELETE", headers: authHeaders() }, true);
-}
+export const deleteProduct = async (productId) => {
+  const res = await API.delete(`/products/${productId}`);
+  return res.data;
+};
 
 // -------------------------
 // Orders
 // -------------------------
-export async function getOrders() {
-  return (await apiFetch(`${BASE_URL}/orders`, { headers: authHeaders() }, true)) || [];
-}
+export const getOrders = async () => {
+  const res = await API.get("/orders");
+  return res.data || [];
+};
 
-export async function placeOrder(productId, quantity = 1) {
-  return apiFetch(`${BASE_URL}/orders`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify({ product_id: productId, quantity }),
-  }, true);
-}
+export const placeOrder = async (productId, quantity = 1) => {
+  const res = await API.post("/orders", { product_id: productId, quantity });
+  return res.data;
+};
 
 // -------------------------
 // Vendors
 // -------------------------
-export async function listPendingVendors() {
-  return (await apiFetch(`${BASE_URL}/vendors/pending`, { headers: authHeaders() }, true)) || [];
-}
+export const listPendingVendors = async () => {
+  const res = await API.get("/vendors/pending");
+  return res.data || [];
+};
 
-export async function applyVendor(data) {
-  return apiFetch(`${BASE_URL}/apply-vendor`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify(data),
-  }, true);
-}
+export const applyVendor = async (data) => {
+  const res = await API.post("/apply-vendor", data);
+  return res.data;
+};
 
-export async function approveVendor(vendorId) {
-  return apiFetch(`${BASE_URL}/vendors/${vendorId}/approve`, { method: "POST", headers: authHeaders() }, true);
-}
+export const approveVendor = async (vendorId) => {
+  const res = await API.post(`/vendors/${vendorId}/approve`);
+  return res.data;
+};
 
-export async function rejectVendor(vendorId) {
-  return apiFetch(`${BASE_URL}/vendors/${vendorId}/reject`, { method: "POST", headers: authHeaders() }, true);
-}
+export const rejectVendor = async (vendorId) => {
+  const res = await API.post(`/vendors/${vendorId}/reject`);
+  return res.data;
+};
