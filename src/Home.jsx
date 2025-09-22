@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ShoppingCart, Store, Shield, User2 } from "lucide-react";
+import { ShoppingCart, Store, Shield, User2, } from "lucide-react";
 import * as StoreAPI from "./api/StoreAPI";
 import "./Home.css";
 
