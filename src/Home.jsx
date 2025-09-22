@@ -1,11 +1,12 @@
+// Home.jsx
 import React, { useEffect, useState } from "react";
-import { ShoppingCart, Store, Shield, User2, } from "lucide-react";
+import { ShoppingCart, Store, Shield, User2 } from "lucide-react";
 import * as StoreAPI from "./api/StoreAPI";
 import "./Home.css";
 
 export default function Home() {
-  const [page, setPage] = useState("login");
-  const [role, setRole] = useState(null);
+  const [page, setPage] = useState("login"); // login | signup | dashboard
+  const [role, setRole] = useState(null); // customer | vendor | admin
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -15,105 +16,93 @@ export default function Home() {
   // -------------------------
   // Auth Handlers
   // -------------------------
-const handleSignup = async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const username = form.username.value.trim();
-  const email = form.email.value.trim();
-  const password = form.password.value;
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const username = form.username.value.trim();
+    const email = form.email.value.trim();
+    const password = form.password.value;
 
-  // Frontend password validation (matches backend regex)
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-  if (!passwordRegex.test(password)) {
-    alert(
-      "Password must be at least 8 characters and include:\n" +
-      "- 1 uppercase letter\n" +
-      "- 1 lowercase letter\n" +
-      "- 1 number\n" +
-      "- 1 special character (@$!%*?&)"
-    );
-    return;
-  }
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      alert(
+        "Password must be at least 8 characters and include:\n" +
+          "- 1 uppercase letter\n" +
+          "- 1 lowercase letter\n" +
+          "- 1 number\n" +
+          "- 1 special character (@$!%*?&)"
+      );
+      return;
+    }
 
-  try {
-    const res = await fetch(
-      "https://virtual-store-backed.onrender.com/api/users/signup",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
-      }
-    );
+    try {
+      const res = await fetch(
+        "https://virtual-store-backed.onrender.com/api/users/signup",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password }),
+        }
+      );
+      const data = await res.json();
 
-    const data = await res.json();
-
-    if (res.ok) {
-      localStorage.setItem("token", data.access_token);
-      const payload = JSON.parse(atob(data.access_token.split(".")[1]));
-      setUser({ email, id: payload.sub });
-      setRole(payload.role);
-      setPage("dashboard");
-    } else {
-      // Show backend error messages clearly
-      if (data.detail && Array.isArray(data.detail)) {
-        alert(data.detail.map(e => e.msg).join("\n"));
+      if (res.ok) {
+        localStorage.setItem("token", data.access_token);
+        const payload = JSON.parse(atob(data.access_token.split(".")[1]));
+        setUser({ email, id: payload.sub });
+        setRole(payload.role || "customer");
+        setPage("dashboard");
       } else {
-        alert("Signup failed");
+        alert(data.detail || "Signup failed");
       }
+    } catch (err) {
+      console.error("Signup error:", err);
+      alert("Server connection failed");
     }
-  } catch (err) {
-    console.error("Signup error:", err);
-    alert("Server connection failed");
-  }
-};
+  };
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const email = form.email.value.trim();
+    const password = form.password.value;
 
+    try {
+      const res = await fetch(
+        "https://virtual-store-backed.onrender.com/api/users/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
+      const data = await res.json();
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const email = form.email.value.trim();
-  const password = form.password.value;
-
-  try {
-    const res = await fetch(
-      "https://virtual-store-backed.onrender.com/api/users/login",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      if (res.ok) {
+        localStorage.setItem("token", data.access_token);
+        const payload = JSON.parse(atob(data.access_token.split(".")[1]));
+        setUser({ email, id: payload.sub });
+        setRole(payload.role || "customer");
+        setPage("dashboard");
+      } else {
+        alert(data.detail || "Login failed");
       }
-    );
-
-    const data = await res.json();
-
-    if (res.ok) {
-      localStorage.setItem("token", data.access_token);
-      const payload = JSON.parse(atob(data.access_token.split(".")[1]));
-      setUser({ email, id: payload.sub });
-      setRole(payload.role); // could be "customer", "vendor", or "admin"
-      setPage("dashboard");
-    } else {
-      alert(data.detail || "Login failed");
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("Server connection failed");
     }
-  } catch (err) {
-    console.error("Login error:", err);
-    alert("Server connection failed");
-  }
-};
-
+  };
 
   // -------------------------
-  // Fetchers with return
+  // Fetchers
   // -------------------------
   const fetchProducts = async () => {
     try {
       const data = await StoreAPI.listProducts();
       setProducts(data);
-      return data;
     } catch (err) {
       console.error("Failed to fetch products:", err.message);
-      return [];
     }
   };
 
@@ -121,10 +110,8 @@ const handleLogin = async (e) => {
     try {
       const data = await StoreAPI.getOrders();
       setOrders(data);
-      return data;
     } catch (err) {
       console.error("Failed to fetch orders:", err.message);
-      return [];
     }
   };
 
@@ -132,23 +119,19 @@ const handleLogin = async (e) => {
     try {
       const data = await StoreAPI.listPendingVendors();
       setPendingVendors(data);
-      return data;
     } catch (err) {
       console.error("Failed to fetch pending vendors:", err.message);
-      return [];
     }
   };
 
   const fetchVendorProducts = async () => {
-    if (role !== "vendor" || !user) return [];
+    if (role !== "vendor" || !user) return;
     try {
       const allProducts = await StoreAPI.listProducts();
       const myProducts = allProducts.filter((p) => p.vendor_id === user.id);
       setVendorProducts(myProducts);
-      return myProducts;
     } catch (err) {
       console.error("Failed to fetch vendor products:", err.message);
-      return [];
     }
   };
 
@@ -157,15 +140,10 @@ const handleLogin = async (e) => {
   // -------------------------
   useEffect(() => {
     if (page === "dashboard") {
-      const tasks = [fetchProducts(), fetchOrders()];
-      if (role === "vendor") tasks.push(fetchVendorProducts());
-      if (role === "admin") tasks.push(fetchPendingVendors());
-
-      Promise.allSettled(tasks).then((results) => {
-        results.forEach((r, i) => {
-          if (r.status === "rejected") console.error(`Task ${i} failed:`, r.reason);
-        });
-      });
+      fetchProducts();
+      fetchOrders();
+      if (role === "vendor") fetchVendorProducts();
+      if (role === "admin") fetchPendingVendors();
     }
   }, [page, role, user]);
 
@@ -182,7 +160,9 @@ const handleLogin = async (e) => {
       </form>
       <p>
         Don’t have an account?{" "}
-        <span className="link" onClick={() => setPage("signup")}>Sign up</span>
+        <span className="link" onClick={() => setPage("signup")}>
+          Sign up
+        </span>
       </p>
     </div>
   );
@@ -198,7 +178,9 @@ const handleLogin = async (e) => {
       </form>
       <p>
         Already have an account?{" "}
-        <span className="link" onClick={() => setPage("login")}>Login</span>
+        <span className="link" onClick={() => setPage("login")}>
+          Login
+        </span>
       </p>
     </div>
   );
@@ -211,9 +193,6 @@ const handleLogin = async (e) => {
     </div>
   );
 
-  // -------------------------
-  // Dashboard render logic (customer/vendor/admin)
-  // -------------------------
   const renderCustomer = () => (
     <div>
       <h3>Products</h3>
@@ -221,7 +200,14 @@ const handleLogin = async (e) => {
         {products.map((p) => (
           <li key={p.id}>
             {p.name} - ${p.price}{" "}
-            <button onClick={async () => { await StoreAPI.placeOrder(p.id, 1); fetchOrders(); }}>Order</button>
+            <button
+              onClick={async () => {
+                await StoreAPI.placeOrder(p.id, 1);
+                fetchOrders();
+              }}
+            >
+              Order
+            </button>
           </li>
         ))}
       </ul>
@@ -235,74 +221,18 @@ const handleLogin = async (e) => {
     </div>
   );
 
-  const renderVendor = () => {
-    const handleUpload = async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const file = form.file.files[0];
-      const data = {
-        name: form.name.value,
-        description: form.description.value,
-        price: parseFloat(form.price.value),
-        stock: parseInt(form.stock.value),
-        file,
-      };
-      await StoreAPI.createProduct(data);
-      fetchVendorProducts();
-    };
-
-    const handleDelete = async (productId) => {
-      await StoreAPI.deleteProduct(productId);
-      fetchVendorProducts();
-    };
-
-    const handleUpdate = async (e, productId) => {
-      e.preventDefault();
-      const form = e.target;
-      const file = form.file?.files[0];
-      const data = {
-        name: form.name.value,
-        description: form.description.value,
-        price: parseFloat(form.price.value),
-        stock: parseInt(form.stock.value),
-        file,
-      };
-      await StoreAPI.updateProduct(productId, data);
-      fetchVendorProducts();
-    };
-
-    return (
-      <div>
-        <h3>Upload Product</h3>
-        <form onSubmit={handleUpload}>
-          <input name="name" placeholder="Product Name" required />
-          <input name="description" placeholder="Description" required />
-          <input name="price" type="number" placeholder="Price" required />
-          <input name="stock" type="number" placeholder="Stock" required />
-          <input type="file" name="file" required />
-          <button type="submit">Upload</button>
-        </form>
-
-        <h3>My Products</h3>
-        <ul>
-          {vendorProducts.map((p) => (
-            <li key={p.id}>
-              <strong>{p.name}</strong> - ${p.price} - Stock: {p.stock}
-              <button onClick={() => handleDelete(p.id)}>Delete</button>
-              <form onSubmit={(e) => handleUpdate(e, p.id)}>
-                <input name="name" defaultValue={p.name} placeholder="Product Name" required />
-                <input name="description" defaultValue={p.description} placeholder="Description" required />
-                <input name="price" type="number" defaultValue={p.price} placeholder="Price" required />
-                <input name="stock" type="number" defaultValue={p.stock} placeholder="Stock" required />
-                <input type="file" name="file" />
-                <button type="submit">Update</button>
-              </form>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
+  const renderVendor = () => (
+    <div>
+      <h3>My Products</h3>
+      <ul>
+        {vendorProducts.map((p) => (
+          <li key={p.id}>
+            {p.name} - ${p.price} - Stock: {p.stock}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 
   const renderAdmin = () => (
     <div>
@@ -316,71 +246,62 @@ const handleLogin = async (e) => {
           </li>
         ))}
       </ul>
-
-      <h3>All Orders</h3>
-      <ul>
-        {orders.map((o) => (
-          <li key={o.id}>{o.product_id} - {o.status}</li>
-        ))}
-      </ul>
     </div>
   );
 
   const renderApplyVendor = () => {
-  const handleApply = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const data = {
-      name: form.name.value.trim(),
-      whatsapp: form.whatsapp.value.trim(),
+    const handleApply = async (e) => {
+      e.preventDefault();
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You must be logged in to apply as vendor");
+        setPage("login");
+        return;
+      }
+
+      const form = e.target;
+      const data = {
+        name: form.name.value.trim(),
+        whatsapp: form.whatsapp.value.trim(),
+      };
+
+      try {
+        const res = await fetch(
+          "https://virtual-store-backed.onrender.com/api/apply-vendor",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+          }
+        );
+
+        const result = await res.json();
+        if (res.ok) {
+          alert("Vendor application submitted! Wait for admin approval via WhatsApp.");
+          setPage("dashboard");
+        } else {
+          alert(result.detail || "Application failed");
+        }
+      } catch (err) {
+        console.error("Apply vendor error:", err);
+        alert("Server connection failed");
+      }
     };
 
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        "https://virtual-store-backed.onrender.com/api/apply-vendor",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(data),
-        }
-      );
-
-      const result = await res.json();
-
-      if (res.ok) {
-        alert("Vendor application submitted! Wait for admin approval via WhatsApp.");
-        setPage("dashboard");
-      } else {
-        alert(result.detail || "Application failed");
-      }
-    } catch (err) {
-      console.error("Apply vendor error:", err);
-      alert("Server connection failed");
-    }
+    return (
+      <div className="auth-container">
+        <h3>Apply as Vendor</h3>
+        <form onSubmit={handleApply}>
+          <input name="name" placeholder="Vendor Name" required />
+          <input name="whatsapp" placeholder="WhatsApp Number" required pattern="^\+?\d{10,15}$" title="Enter valid WhatsApp number with country code" />
+          <button type="submit">Apply</button>
+        </form>
+      </div>
+    );
   };
-
-  return (
-    <div className="auth-container">
-      <h3>Apply as Vendor</h3>
-      <form onSubmit={handleApply}>
-        <input name="name" placeholder="Vendor Name" required />
-        <input
-          name="whatsapp"
-          placeholder="WhatsApp Number"
-          required
-          pattern="^\+?\d{10,15}$"
-          title="Enter valid WhatsApp number with country code"
-        />
-        <button type="submit">Apply</button>
-      </form>
-    </div>
-  );
-};
-
 
   const renderDashboard = () => (
     <div className="dashboard">
@@ -393,10 +314,10 @@ const handleLogin = async (e) => {
       </div>
 
       <div className="bottom-nav">
-        <button onClick={() => setPage("dashboard")}> <ShoppingCart size={20} /> Customer </button>
-        <button onClick={() => setPage("dashboard")}> <Store size={20} /> Vendor </button>
-        <button onClick={() => setPage("dashboard")}> <Shield size={20} /> Admin </button>
-        <button onClick={() => setPage("account")}> <User2 size={20} /> Account </button>
+        <button className={role === "customer" ? "active" : ""} onClick={() => setPage("dashboard")}><ShoppingCart size={20} /> Customer</button>
+        <button className={role === "vendor" ? "active" : ""} onClick={() => setPage("dashboard")}><Store size={20} /> Vendor</button>
+        <button className={role === "admin" ? "active" : ""} onClick={() => setPage("dashboard")}><Shield size={20} /> Admin</button>
+        <button onClick={() => setPage("account")}><User2 size={20} /> Account</button>
       </div>
     </div>
   );
