@@ -327,25 +327,60 @@ const handleLogin = async (e) => {
   );
 
   const renderApplyVendor = () => {
-    const handleApply = async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const data = { name: form.name.value, whatsapp: form.whatsapp.value };
-      await StoreAPI.applyVendor(data);
-      alert("Applied! Wait for admin approval.");
-      setPage("dashboard");
+  const handleApply = async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const data = {
+      name: form.name.value.trim(),
+      whatsapp: form.whatsapp.value.trim(),
     };
-    return (
-      <div>
-        <h3>Apply as Vendor</h3>
-        <form onSubmit={handleApply}>
-          <input name="name" placeholder="Vendor Name" required />
-          <input name="whatsapp" placeholder="WhatsApp Number" required />
-          <button type="submit">Apply</button>
-        </form>
-      </div>
-    );
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        "https://virtual-store-backed.onrender.com/api/apply-vendor",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        }
+      );
+
+      const result = await res.json();
+
+      if (res.ok) {
+        alert("Vendor application submitted! Wait for admin approval via WhatsApp.");
+        setPage("dashboard");
+      } else {
+        alert(result.detail || "Application failed");
+      }
+    } catch (err) {
+      console.error("Apply vendor error:", err);
+      alert("Server connection failed");
+    }
   };
+
+  return (
+    <div className="auth-container">
+      <h3>Apply as Vendor</h3>
+      <form onSubmit={handleApply}>
+        <input name="name" placeholder="Vendor Name" required />
+        <input
+          name="whatsapp"
+          placeholder="WhatsApp Number"
+          required
+          pattern="^\+?\d{10,15}$"
+          title="Enter valid WhatsApp number with country code"
+        />
+        <button type="submit">Apply</button>
+      </form>
+    </div>
+  );
+};
+
 
   const renderDashboard = () => (
     <div className="dashboard">
