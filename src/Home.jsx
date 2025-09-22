@@ -18,9 +18,22 @@ export default function Home() {
 const handleSignup = async (e) => {
   e.preventDefault();
   const form = e.target;
-  const username = form.username.value;
-  const email = form.email.value;
+  const username = form.username.value.trim();
+  const email = form.email.value.trim();
   const password = form.password.value;
+
+  // Frontend password validation (matches backend regex)
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+  if (!passwordRegex.test(password)) {
+    alert(
+      "Password must be at least 8 characters and include:\n" +
+      "- 1 uppercase letter\n" +
+      "- 1 lowercase letter\n" +
+      "- 1 number\n" +
+      "- 1 special character (@$!%*?&)"
+    );
+    return;
+  }
 
   try {
     const res = await fetch(
@@ -41,13 +54,19 @@ const handleSignup = async (e) => {
       setRole(payload.role);
       setPage("dashboard");
     } else {
-      alert(data.detail || "Signup failed");
+      // Show backend error messages clearly
+      if (data.detail && Array.isArray(data.detail)) {
+        alert(data.detail.map(e => e.msg).join("\n"));
+      } else {
+        alert("Signup failed");
+      }
     }
   } catch (err) {
     console.error("Signup error:", err);
     alert("Server connection failed");
   }
 };
+
 
 
 const handleLogin = async (e) => {
