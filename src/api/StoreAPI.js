@@ -5,13 +5,11 @@ const BASE_URL = "https://virtual-store-backed.onrender.com/api/store";
 // -------------------------
 // Axios instance with token
 // -------------------------
-const API = axios.create({
-  baseURL: BASE_URL,
-});
+const API = axios.create({ baseURL: BASE_URL });
 
 // Attach token automatically
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("access_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -21,7 +19,7 @@ API.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
+      localStorage.removeItem("access_token");
       alert("Session expired. Please login again.");
       window.location.reload();
     }
@@ -39,14 +37,14 @@ export const listProducts = async () => {
 
 export const createProduct = async (data) => {
   const formData = new FormData();
-  Object.entries(data).forEach(([key, value]) => value != null && formData.append(key, value));
+  Object.entries(data).forEach(([k, v]) => v != null && formData.append(k, v));
   const res = await API.post("/products", formData, { headers: { "Content-Type": "multipart/form-data" } });
   return res.data;
 };
 
 export const updateProduct = async (productId, data) => {
   const formData = new FormData();
-  Object.entries(data).forEach(([key, value]) => value != null && formData.append(key, value));
+  Object.entries(data).forEach(([k, v]) => v != null && formData.append(k, v));
   const res = await API.put(`/products/${productId}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
   return res.data;
 };

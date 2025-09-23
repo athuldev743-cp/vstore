@@ -1,6 +1,5 @@
-// Home.jsx
 import React, { useEffect, useState, useCallback } from "react";
-import { ShoppingCart, User2 } from "lucide-react"; // Removed unused icons
+import { ShoppingCart, User2 } from "lucide-react";
 import * as StoreAPI from "./api/StoreAPI";
 import "./Home.css";
 
@@ -17,12 +16,16 @@ export default function Home() {
   // Persistent login
   // -------------------------
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (token) {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      setUser({ id: payload.sub, email: payload.email || "" });
-      setRole(payload.role || "customer");
-      setPage("dashboard");
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        setUser({ id: payload.sub, email: payload.email || "" });
+        setRole(payload.role || "customer");
+        setPage("dashboard");
+      } catch {
+        localStorage.removeItem("access_token");
+      }
     }
   }, []);
 
@@ -39,8 +42,7 @@ export default function Home() {
       setOrders(allOrders);
 
       if (role === "vendor") {
-        const myProducts = allProducts.filter((p) => p.vendor_id === user.id);
-        setVendorProducts(myProducts);
+        setVendorProducts(allProducts.filter((p) => p.vendor_id === user.id));
       }
 
       if (role === "admin") {
@@ -77,17 +79,14 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch(
-        "https://virtual-store-backed.onrender.com/api/users/signup",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
+      const res = await fetch("https://virtual-store-backed.onrender.com/api/users/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
       const result = await res.json();
       if (res.ok) {
-        localStorage.setItem("token", result.access_token);
+        localStorage.setItem("access_token", result.access_token);
         const payload = JSON.parse(atob(result.access_token.split(".")[1]));
         setUser({ id: payload.sub, email: data.email });
         setRole(payload.role || "customer");
@@ -107,17 +106,14 @@ export default function Home() {
     const data = { email: form.email.value.trim(), password: form.password.value };
 
     try {
-      const res = await fetch(
-        "https://virtual-store-backed.onrender.com/api/users/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
+      const res = await fetch("https://virtual-store-backed.onrender.com/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
       const result = await res.json();
       if (res.ok) {
-        localStorage.setItem("token", result.access_token);
+        localStorage.setItem("access_token", result.access_token);
         const payload = JSON.parse(atob(result.access_token.split(".")[1]));
         setUser({ id: payload.sub, email: data.email });
         setRole(payload.role || "customer");
@@ -132,7 +128,7 @@ export default function Home() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("access_token");
     setUser(null);
     setRole(null);
     setPage("login");
@@ -217,23 +213,9 @@ export default function Home() {
       <ul>
         {pendingVendors.map((v) => (
           <li key={v.id}>
-            {v.name} - {v.status}{" "}
-            <button
-              onClick={async () => {
-                await StoreAPI.approveVendor(v.id);
-                fetchDashboardData();
-              }}
-            >
-              Approve
-            </button>
-            <button
-              onClick={async () => {
-                await StoreAPI.rejectVendor(v.id);
-                fetchDashboardData();
-              }}
-            >
-              Reject
-            </button>
+            {v.shop_name} - {v.status}{" "}
+            <button onClick={async () => { await StoreAPI.approveVendor(v.id); fetchDashboardData(); }}>Approve</button>
+            <button onClick={async () => { await StoreAPI.rejectVendor(v.id); fetchDashboardData(); }}>Reject</button>
           </li>
         ))}
       </ul>
@@ -244,11 +226,12 @@ export default function Home() {
     const handleApply = async (e) => {
       e.preventDefault();
       const form = e.target;
-      const data = { name: form.name.value.trim(), whatsapp: form.whatsapp.value.trim() };
+      const data = { shop_name: form.name.value.trim(), whatsapp: form.whatsapp.value.trim() };
       try {
         await StoreAPI.applyVendor(data);
         alert("Vendor application submitted!");
         setPage("dashboard");
+        fetchDashboardData();
       } catch (err) {
         console.error(err);
         alert("Application failed");
@@ -260,12 +243,7 @@ export default function Home() {
         <h3>Apply as Vendor</h3>
         <form onSubmit={handleApply}>
           <input name="name" placeholder="Vendor Name" required />
-          <input
-            name="whatsapp"
-            placeholder="WhatsApp Number"
-            required
-            pattern="^\+?\d{10,15}$"
-          />
+          <input name="whatsapp" placeholder="WhatsApp Number" required pattern="^\+?\d{10,15}$" />
           <button type="submit">Apply</button>
         </form>
       </div>
