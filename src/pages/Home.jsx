@@ -86,7 +86,7 @@ export default function Home({ user, vendorApproved, onLogout }) {
             <p>
               {user.role === "vendor"
                 ? vendorApproved
-                  ? "You can add products."
+                  ? "You can now add products."
                   : "Your vendor application is pending approval."
                 : "You are a super admin."}
             </p>
