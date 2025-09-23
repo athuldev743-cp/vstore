@@ -2,15 +2,14 @@ import axios from "axios";
 
 const BASE_URL = "https://virtual-store-backed.onrender.com/api/store";
 
-// -------------------------
-// Axios instance with token
-// -------------------------
 const API = axios.create({ baseURL: BASE_URL });
 
-// Attach token automatically
+// Attach token from localStorage to every request
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
@@ -27,69 +26,41 @@ API.interceptors.response.use(
   }
 );
 
-// -------------------------
-// Products
-// -------------------------
-export const listProducts = async () => {
-  const res = await API.get("/products");
-  return res.data || [];
-};
-
-export const createProduct = async (data) => {
-  const formData = new FormData();
-  Object.entries(data).forEach(([k, v]) => v != null && formData.append(k, v));
-  const res = await API.post("/products", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+export const signup = async (data) => {
+  const res = await axios.post(
+    "https://virtual-store-backed.onrender.com/api/users/signup",
+    data
+  );
   return res.data;
 };
 
-export const updateProduct = async (productId, data) => {
-  const formData = new FormData();
-  Object.entries(data).forEach(([k, v]) => v != null && formData.append(k, v));
-  const res = await API.put(`/products/${productId}`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return res.data;
-};
-
-export const deleteProduct = async (productId) => {
-  const res = await API.delete(`/products/${productId}`);
+export const login = async (data) => {
+  const res = await axios.post(
+    "https://virtual-store-backed.onrender.com/api/users/login",
+    data
+  );
   return res.data;
 };
 
 // -------------------------
-// Orders
+// Products & Orders
 // -------------------------
-export const getOrders = async () => {
-  const res = await API.get("/orders");
-  return res.data || [];
-};
-
-export const placeOrder = async (productId, quantity = 1) => {
-  const res = await API.post("/orders", { product_id: productId, quantity });
-  return res.data;
-};
+export const listProducts = async () => (await API.get("/products")).data || [];
+export const getOrders = async () => (await API.get("/orders")).data || [];
+export const placeOrder = async (productId, quantity = 1) =>
+  (await API.post("/orders", { product_id: productId, quantity })).data;
 
 // -------------------------
 // Vendors
 // -------------------------
-export const listPendingVendors = async () => {
-  const res = await API.get("/vendors/pending");
-  return res.data || [];
-};
+export const listPendingVendors = async () =>
+  (await API.get("/vendors/pending")).data || [];
 
-export const applyVendor = async (data) => {
-  const res = await API.post("/apply-vendor", data);
-  return res.data;
-};
+export const applyVendor = async (data) =>
+  (await API.post("/apply-vendor", data)).data;
 
-export const approveVendor = async (vendorId) => {
-  const res = await API.post(`/vendors/${vendorId}/approve`);
-  return res.data;
-};
+export const approveVendor = async (vendorId) =>
+  (await API.post(`/vendors/${vendorId}/approve`)).data;
 
-export const rejectVendor = async (vendorId) => {
-  const res = await API.post(`/vendors/${vendorId}/reject`);
-  return res.data;
-};
+export const rejectVendor = async (vendorId) =>
+  (await API.post(`/vendors/${vendorId}/reject`)).data;

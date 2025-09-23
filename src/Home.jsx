@@ -63,76 +63,54 @@ export default function Home() {
   // Auth Handlers
   // -------------------------
   const handleSignup = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const data = {
-      username: form.username.value.trim(),
-      email: form.email.value.trim(),
-      password: form.password.value,
-    };
-
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-    if (!passwordRegex.test(data.password)) {
-      return alert(
-        "Password must be 8+ chars with 1 uppercase, 1 lowercase, 1 number, 1 special char"
-      );
-    }
-
-    try {
-      const res = await fetch(
-        "https://virtual-store-backed.onrender.com/api/users/signup",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
-      const result = await res.json();
-      if (res.ok) {
-        localStorage.setItem("token", result.access_token);
-        const payload = JSON.parse(atob(result.access_token.split(".")[1]));
-        setUser({ id: payload.sub, email: data.email });
-        setRole(payload.role || "customer");
-        setPage("dashboard");
-      } else {
-        alert(result.detail || "Signup failed");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Server connection failed");
-    }
+  e.preventDefault();
+  const form = e.target;
+  const data = {
+    username: form.username.value.trim(),
+    email: form.email.value.trim(),
+    password: form.password.value,
   };
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+  if (!passwordRegex.test(data.password)) {
+    return alert(
+      "Password must be 8+ chars with 1 uppercase, 1 lowercase, 1 number, 1 special char"
+    );
+  }
+
+  try {
+    const result = await StoreAPI.signup(data);
+    localStorage.setItem("token", result.access_token);
+    const payload = JSON.parse(atob(result.access_token.split(".")[1]));
+    setUser({ id: payload.sub, email: data.email });
+    setRole(payload.role || "customer");
+    setPage("dashboard");
+  } catch (err) {
+    console.error(err);
+    alert(err.response?.data?.detail || "Server connection failed");
+  }
+};
+
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const data = { email: form.email.value.trim(), password: form.password.value };
+  e.preventDefault();
+  const form = e.target;
+  const data = { email: form.email.value.trim(), password: form.password.value };
 
-    try {
-      const res = await fetch(
-        "https://virtual-store-backed.onrender.com/api/users/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
-      const result = await res.json();
-      if (res.ok) {
-        localStorage.setItem("token", result.access_token);
-        const payload = JSON.parse(atob(result.access_token.split(".")[1]));
-        setUser({ id: payload.sub, email: data.email });
-        setRole(payload.role || "customer");
-        setPage("dashboard");
-      } else {
-        alert(result.detail || "Login failed");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Server connection failed");
-    }
-  };
+  try {
+    const result = await StoreAPI.login(data);
+    localStorage.setItem("token", result.access_token);
+    const payload = JSON.parse(atob(result.access_token.split(".")[1]));
+    setUser({ id: payload.sub, email: data.email });
+    setRole(payload.role || "customer");
+    setPage("dashboard");
+  } catch (err) {
+    console.error(err);
+    alert(err.response?.data?.detail || "Server connection failed");
+  }
+};
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
