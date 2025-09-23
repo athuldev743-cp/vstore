@@ -1,0 +1,65 @@
+/* src/pages/ApplyVendor.css */
+
+.auth-page {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #f5f9ff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.auth-page h2 {
+  text-align: center;
+  color: #007bff;
+  margin-bottom: 20px;
+}
+
+.auth-page form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.auth-page input,
+.auth-page textarea {
+  padding: 12px;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.auth-page input:focus,
+.auth-page textarea:focus {
+  border-color: #007bff;
+}
+
+.auth-page textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.auth-page button {
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.auth-page button:hover {
+  background-color: #0056b3;
+}
+
+.auth-page p {
+  text-align: center;
+  color: red;
+  margin-top: 10px;
+  font-size: 14px;
+}

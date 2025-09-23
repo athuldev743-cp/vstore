@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
+import "./ApplyVendor.css";
+
 
 export default function ApplyVendor() {
   const navigate = useNavigate();
