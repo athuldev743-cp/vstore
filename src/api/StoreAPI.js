@@ -1,3 +1,4 @@
+// StoreAPI.js
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const getToken = () => localStorage.getItem("token");
@@ -20,23 +21,31 @@ const request = async (endpoint, options = {}) => {
 // Auth
 // -------------------------
 export const signup = (data) =>
-  request("/signup", { method: "POST", body: JSON.stringify(data) });
+  request("/api/users/signup", { method: "POST", body: JSON.stringify(data) });
 
 export const login = (data) =>
-  request("/login", { method: "POST", body: JSON.stringify(data) });
+  request("/api/users/login", { method: "POST", body: JSON.stringify(data) });
 
 // -------------------------
 // Store
 // -------------------------
-export const listProducts = () => request("/products");
-export const getOrders = () => request("/orders");
+export const listProducts = () => request("/api/store/products");
+
+export const getOrders = () => request("/api/store/orders");
+
 export const placeOrder = (product_id, quantity) =>
-  request("/orders", { method: "POST", body: JSON.stringify({ product_id, quantity }) });
+  request("/api/store/orders", { method: "POST", body: JSON.stringify({ product_id, quantity }) });
 
 // -------------------------
 // Vendor
 // -------------------------
-export const applyVendor = (data) => request("/apply-vendor", { method: "POST", body: JSON.stringify(data) });
-export const listPendingVendors = () => request("/vendors/pending");
-export const approveVendor = (vendor_id) => request(`/vendors/${vendor_id}/approve`, { method: "POST" });
-export const rejectVendor = (vendor_id) => request(`/vendors/${vendor_id}/reject`, { method: "POST" });
+export const applyVendor = (data) =>
+  request("/api/store/apply-vendor", { method: "POST", body: JSON.stringify(data) });
+
+export const listPendingVendors = () => request("/api/store/vendors/pending");
+
+export const approveVendor = (vendor_id) =>
+  request(`/api/store/vendors/${vendor_id}/approve`, { method: "POST" });
+
+export const rejectVendor = (vendor_id) =>
+  request(`/api/store/vendors/${vendor_id}/reject`, { method: "POST" });
