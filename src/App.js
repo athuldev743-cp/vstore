@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import ApplyVendor from "./pages/ApplyVendor";
@@ -10,7 +10,6 @@ import * as StoreAPI from "./api/StoreAPI";
 export default function App() {
   const [user, setUser] = useState(null);
   const [vendorApproved, setVendorApproved] = useState(false);
-  const [loadingVendorStatus, setLoadingVendorStatus] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -22,14 +21,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-  if (user?.role === "vendor") {
-    setLoadingVendorStatus(true);
-    StoreAPI.getVendorStatus(user.id)
-      .then((res) => setVendorApproved(res.status === "approved"))
-      .catch(() => setVendorApproved(false))
-      .finally(() => setLoadingVendorStatus(false));
-  }
-}, [user]);
+    if (user?.role === "vendor") {
+      StoreAPI.getVendorStatus(user.id)
+        .then((res) => setVendorApproved(res.status === "approved"))
+        .catch(() => setVendorApproved(false));
+    }
+  }, [user]);
 
   const handleLoginSuccess = () => {
     const token = localStorage.getItem("token");
@@ -40,17 +37,35 @@ export default function App() {
     } catch {}
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+  };
+
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home user={user} vendorApproved={vendorApproved} />} />
+        <Route
+          path="/"
+          element={
+            <Home
+              user={user}
+              vendorApproved={vendorApproved}
+              onLogout={handleLogout}
+            />
+          }
+        />
         <Route
           path="/apply-vendor"
-          element={user?.role === "customer" ? <ApplyVendor /> : <Navigate to="/auth" />}
+          element={
+            user?.role === "customer" ? <ApplyVendor /> : <Navigate to="/auth" />
+          }
         />
         <Route
           path="/auth"
-          element={user ? <Navigate to={user.role === "admin" ? "/admin" : "/"} /> : <Auth onLoginSuccess={handleLoginSuccess} />}
+          element={
+            user ? <Navigate to={user.role === "admin" ? "/admin" : "/"} /> : <Auth onLoginSuccess={handleLoginSuccess} />
+          }
         />
         <Route
           path="/admin"
@@ -58,7 +73,9 @@ export default function App() {
         />
         <Route
           path="/vendor/products"
-          element={user?.role === "vendor" && vendorApproved ? <AddProduct /> : <Navigate to="/" />}
+          element={
+            user?.role === "vendor" && vendorApproved ? <AddProduct /> : <Navigate to="/" />
+          }
         />
       </Routes>
     </Router>

@@ -8,26 +8,36 @@ export default function Auth({ onLoginSuccess }) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
       const result = await StoreAPI.login({ email, password });
       localStorage.setItem("token", result.access_token);
       onLoginSuccess();
     } catch (err) {
-      alert(err.message || "Login failed");
+      setError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
       const result = await StoreAPI.signup({ username, email, password });
       localStorage.setItem("token", result.access_token);
       onLoginSuccess();
     } catch (err) {
-      alert(err.message || "Signup failed");
+      setError(err.message || "Signup failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,7 +61,10 @@ export default function Auth({ onLoginSuccess }) {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button type="submit">Login</button>
+            <button type="submit" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
+            </button>
+            {error && <p className="error">{error}</p>}
           </form>
           <p>
             Don’t have an account?{" "}
@@ -85,7 +98,10 @@ export default function Auth({ onLoginSuccess }) {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button type="submit">Sign Up</button>
+            <button type="submit" disabled={loading}>
+              {loading ? "Signing up..." : "Sign Up"}
+            </button>
+            {error && <p className="error">{error}</p>}
           </form>
           <p>
             Already have an account?{" "}
