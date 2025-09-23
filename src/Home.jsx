@@ -21,7 +21,6 @@ export default function Home() {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.exp * 1000 < Date.now()) throw new Error("Token expired");
         setUser({ id: payload.sub, email: payload.email || "" });
         setRole(payload.role || "customer");
         setPage("dashboard");
@@ -32,7 +31,7 @@ export default function Home() {
   }, []);
 
   // -------------------------
-  // Dashboard data fetch
+  // Dashboard fetch
   // -------------------------
   const fetchDashboardData = useCallback(async () => {
     if (!user || !role) return;
@@ -67,7 +66,7 @@ export default function Home() {
   }, [page, user, role, fetchDashboardData]);
 
   // -------------------------
-  // Auth Handlers
+  // Auth
   // -------------------------
   const handleSignup = async (e) => {
     e.preventDefault();
