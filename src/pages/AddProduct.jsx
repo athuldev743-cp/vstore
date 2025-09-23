@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import * as StoreAPI from "../api/StoreAPI";
-
+import "./AddProduct.css";
 export default function AddProduct({ onProductAdded }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
