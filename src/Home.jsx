@@ -33,28 +33,32 @@ export default function Home() {
   // -------------------------
   // Dashboard data fetch
   // -------------------------
-  const fetchDashboardData = useCallback(async () => {
-    if (!user || !role) return;
-    try {
-      const allProducts = await StoreAPI.listProducts();
-      setProducts(allProducts);
+ const fetchDashboardData = useCallback(async () => {
+  if (!user || !role) return;
+  try {
+    const allProducts = await StoreAPI.listProducts();
+    setProducts(allProducts);
 
-      const allOrders = await StoreAPI.getOrders();
-      setOrders(allOrders);
+    const allOrders = await StoreAPI.getOrders();
+    setOrders(allOrders);
 
-      if (role === "vendor") {
-        setVendorProducts(allProducts.filter((p) => p.vendor_id === user.id));
-      }
-
-      if (role === "admin") {
-        const pending = await StoreAPI.listPendingVendors();
-        setPendingVendors(pending);
-      }
-    } catch (err) {
-      console.error("Dashboard fetch failed:", err);
-      if (err.message.includes("Unauthorized")) handleLogout();
+    if (role === "vendor") {
+      setVendorProducts(allProducts.filter((p) => p.vendor_id === user.id));
     }
-  }, [role, user]);
+
+    if (role === "admin") {
+      const pending = await StoreAPI.listPendingVendors();
+      setPendingVendors(pending);
+    }
+  } catch (err) {
+    console.error("Dashboard fetch failed:", err);
+    if (err.message.includes("Unauthorized")) {
+      alert("Session expired. Please login again.");
+      handleLogout(); // <- logout and redirect to login
+    }
+  }
+}, [role, user]);
+
 
   useEffect(() => {
     if (page === "dashboard" && user && role) {
