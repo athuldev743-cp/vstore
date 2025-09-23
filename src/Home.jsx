@@ -16,7 +16,7 @@ export default function Home() {
   // Persistent login
   // -------------------------
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("token"); // ✅ fixed
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
@@ -24,7 +24,7 @@ export default function Home() {
         setRole(payload.role || "customer");
         setPage("dashboard");
       } catch {
-        localStorage.removeItem("access_token");
+        localStorage.removeItem("token"); // ✅ fixed
       }
     }
   }, []);
@@ -79,14 +79,17 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch("https://virtual-store-backed.onrender.com/api/users/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        "https://virtual-store-backed.onrender.com/api/users/signup",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
       const result = await res.json();
       if (res.ok) {
-        localStorage.setItem("access_token", result.access_token);
+        localStorage.setItem("token", result.access_token); // ✅ fixed
         const payload = JSON.parse(atob(result.access_token.split(".")[1]));
         setUser({ id: payload.sub, email: data.email });
         setRole(payload.role || "customer");
@@ -106,14 +109,17 @@ export default function Home() {
     const data = { email: form.email.value.trim(), password: form.password.value };
 
     try {
-      const res = await fetch("https://virtual-store-backed.onrender.com/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        "https://virtual-store-backed.onrender.com/api/users/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
       const result = await res.json();
       if (res.ok) {
-        localStorage.setItem("access_token", result.access_token);
+        localStorage.setItem("token", result.access_token); // ✅ fixed
         const payload = JSON.parse(atob(result.access_token.split(".")[1]));
         setUser({ id: payload.sub, email: data.email });
         setRole(payload.role || "customer");
@@ -128,7 +134,7 @@ export default function Home() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
+    localStorage.removeItem("token"); // ✅ fixed
     setUser(null);
     setRole(null);
     setPage("login");

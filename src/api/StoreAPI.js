@@ -9,7 +9,7 @@ const API = axios.create({ baseURL: BASE_URL });
 
 // Attach token automatically
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+  const token = localStorage.getItem("token"); // <-- change from "access_token" to "token"
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -19,14 +19,13 @@ API.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("access_token");
+      localStorage.removeItem("token"); // <-- change from "access_token" to "token"
       alert("Session expired. Please login again.");
       window.location.reload();
     }
     return Promise.reject(error);
   }
 );
-
 // -------------------------
 // Products
 // -------------------------
