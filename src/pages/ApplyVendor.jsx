@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import "./ApplyVendor.css";
 
-
 export default function ApplyVendor() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ shop_name: "", whatsapp: "", description: "" });
@@ -20,11 +19,11 @@ export default function ApplyVendor() {
     setLoading(true);
     setError("");
     try {
-      await StoreAPI.applyVendor(form);
+      await StoreAPI.applyVendor(form); // simplified call
       alert("Application submitted successfully!");
       navigate("/"); // go back home
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to submit application");
     } finally {
       setLoading(false);
     }

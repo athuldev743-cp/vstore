@@ -1,5 +1,5 @@
 // StoreAPI.js
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const API_BASE = process.env.REACT_APP_API_URL || "https://virtual-store-backed.onrender.com";
 
 // -------------------------
 // Token helpers
@@ -56,11 +56,21 @@ export const placeOrder = (product_id, quantity) =>
 // Vendor APIs
 // -------------------------
 // Vendor APIs
-export const applyVendor = (data) =>
-  request("/apply-vendor", {
+export const applyVendor = (data) => {
+  const token = localStorage.getItem("token");
+  return fetch(`${API_BASE}/api/store/apply-vendor`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`, // JWT
+    },
     body: JSON.stringify(data),
+  }).then(res => {
+    if (!res.ok) throw new Error(`Failed: ${res.status}`);
+    return res.json();
   });
+};
+
 
 
 export const listPendingVendors = () => request("/api/store/vendors/pending");
