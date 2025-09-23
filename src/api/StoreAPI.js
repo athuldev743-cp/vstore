@@ -55,8 +55,13 @@ export const placeOrder = (product_id, quantity) =>
 // -------------------------
 // Vendor APIs
 // -------------------------
+// Vendor APIs
 export const applyVendor = (data) =>
-  request("/api/store/apply-vendor", { method: "POST", body: JSON.stringify(data) });
+  request("/apply-vendor", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
 
 export const listPendingVendors = () => request("/api/store/vendors/pending");
 export const approveVendor = (vendor_id) =>

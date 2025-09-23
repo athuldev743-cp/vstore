@@ -1,0 +1,95 @@
+.home-page {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5faff;
+  min-height: 100vh;
+}
+
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #1e88e5;
+  color: #fff;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.signup-btn {
+  background-color: #fff;
+  color: #1e88e5;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.signup-btn:hover {
+  background-color: #e0f0ff;
+}
+
+.home-content {
+  padding: 20px;
+}
+
+.welcome h2 {
+  color: #1e88e5;
+  font-size: 1.4rem;
+}
+
+.welcome p {
+  margin-top: 10px;
+  color: #555;
+}
+
+/* Products list */
+.product-list {
+  list-style: none;
+  padding: 0;
+}
+
+.product-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  margin-bottom: 10px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.order-btn {
+  background-color: #1e88e5;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.order-btn:hover {
+  background-color: #1565c0;
+}
+
+/* Apply as Vendor */
+.vendor-btn {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 10px 0;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.vendor-btn:hover {
+  background-color: #388e3c;
+}
