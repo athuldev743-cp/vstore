@@ -53,9 +53,9 @@ export const placeOrder = (product_id, quantity) =>
   request("/api/store/orders", { method: "POST", body: JSON.stringify({ product_id, quantity }) });
 
 // -------------------------
-// Vendor APIs
 // -------------------------
 // Vendor APIs
+// -------------------------
 export const applyVendor = (data) => {
   const token = localStorage.getItem("token");
   return fetch(`${API_BASE}/api/store/apply-vendor`, {
@@ -70,11 +70,27 @@ export const applyVendor = (data) => {
     return res.json();
   });
 };
-
-
-
+export const addProduct = (formData) => {
+  const token = localStorage.getItem("token");
+  return fetch(`${API_BASE}/api/store/products`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`, // JWT
+      // DO NOT set "Content-Type" here; browser sets multipart/form-data boundary automatically
+    },
+    body: formData,
+  }).then(async (res) => {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || `Failed: ${res.status}`);
+    return data;
+  });
+};
 export const listPendingVendors = () => request("/api/store/vendors/pending");
 export const approveVendor = (vendor_id) =>
   request(`/api/store/vendors/${vendor_id}/approve`, { method: "POST" });
 export const rejectVendor = (vendor_id) =>
   request(`/api/store/vendors/${vendor_id}/reject`, { method: "POST" });
+
+// ✅ New function: Check vendor status by user ID
+export const getVendorStatus = (userId) =>
+  request(`/api/store/vendors/status/${userId}`);

@@ -3,34 +3,22 @@ import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import "./Home.css";
 
-export default function Home() {
+export default function Home({ user: appUser, vendorApproved }) {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(appUser);
   const [products, setProducts] = useState([]);
 
-  // Replace this with your email for super admin
+  // Replace this with your super admin email
   const SUPER_ADMIN_EMAIL = "your_email@example.com";
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      setUser({
-        role: payload.role,
-        id: payload.sub,
-        email: payload.email,
-        isSuperAdmin: payload.email === SUPER_ADMIN_EMAIL,
-      });
-
-      if (payload.role === "customer") {
-        StoreAPI.listProducts().then(setProducts).catch(console.error);
-      }
-    } catch (err) {
-      console.error(err);
+    setUser(appUser);
+    if (appUser?.role === "customer") {
+      StoreAPI.listProducts()
+        .then(setProducts)
+        .catch(console.error);
     }
-  }, []);
+  }, [appUser]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -51,10 +39,13 @@ export default function Home() {
               Apply as Vendor
             </button>
           )}
-          {user?.isSuperAdmin && (
-            <button className="admin-icon" onClick={() => navigate("/admin")}>
-              🛠 Admin
+          {user?.role === "vendor" && vendorApproved && (
+            <button onClick={() => navigate("/vendor/products")}>
+              ➕ Add Product
             </button>
+          )}
+          {user?.email === SUPER_ADMIN_EMAIL && (
+            <button onClick={() => navigate("/admin")}>🛠 Admin</button>
           )}
           {user && <button onClick={handleLogout}>Logout</button>}
         </div>
