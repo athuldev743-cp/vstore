@@ -1,10 +1,10 @@
 // StoreAPI.js
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
-// Get token from localStorage
+// Helper: get token from localStorage
 const getToken = () => localStorage.getItem("token");
 
-// Generic fetch wrapper
+// Generic request handler
 const request = async (endpoint, options = {}) => {
   const headers = {
     "Content-Type": "application/json",
@@ -14,7 +14,10 @@ const request = async (endpoint, options = {}) => {
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers,
+  });
 
   if (res.status === 401) {
     throw new Error("Unauthorized: Session expired. Please login again.");
@@ -39,10 +42,10 @@ export const login = (data) =>
 // -------------------------
 export const listProducts = () => request("/store/products");
 
-export const getOrders = () => request("/store/orders");
+export const getOrders = () => request("/orders");
 
 export const placeOrder = (product_id, quantity) =>
-  request("/store/orders", {
+  request("/orders", {
     method: "POST",
     body: JSON.stringify({ product_id, quantity }),
   });

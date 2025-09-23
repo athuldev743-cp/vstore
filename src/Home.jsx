@@ -31,7 +31,7 @@ export default function Home() {
   }, []);
 
   // -------------------------
-  // Dashboard fetch
+  // Dashboard data fetch
   // -------------------------
   const fetchDashboardData = useCallback(async () => {
     if (!user || !role) return;
@@ -66,7 +66,7 @@ export default function Home() {
   }, [page, user, role, fetchDashboardData]);
 
   // -------------------------
-  // Auth
+  // Auth Handlers
   // -------------------------
   const handleSignup = async (e) => {
     e.preventDefault();
