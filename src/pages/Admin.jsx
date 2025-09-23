@@ -3,79 +3,67 @@ import * as StoreAPI from "../api/StoreAPI";
 import "./Admin.css";
 
 export default function Admin() {
-  const [vendors, setVendors] = useState([]);
+  const [pendingVendors, setPendingVendors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState({});
-  const [error, setError] = useState("");
 
-  // -------------------------
-  // Fetch pending vendors
-  // -------------------------
-  const fetchVendors = async () => {
+  const fetchPending = async () => {
     try {
-      setLoading(true);
       const data = await StoreAPI.listPendingVendors();
-      setVendors(data);
+      setPendingVendors(data);
     } catch (err) {
-      setError(err.message);
+      console.error(err);
+      alert("Failed to load pending vendors.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchVendors();
+    fetchPending();
   }, []);
 
-  // -------------------------
-  // Approve / Reject handlers
-  // -------------------------
-  const handleAction = async (vendorId, action) => {
+  const approve = async (id) => {
     try {
-      setActionLoading({ ...actionLoading, [vendorId]: true });
-      if (action === "approve") await StoreAPI.approveVendor(vendorId);
-      else await StoreAPI.rejectVendor(vendorId);
-      // Remove vendor from list
-      setVendors(vendors.filter((v) => v.id !== vendorId));
+      await StoreAPI.approveVendor(id);
+      alert("Vendor approved!");
+      fetchPending();
     } catch (err) {
-      alert(err.message || "Action failed");
-    } finally {
-      setActionLoading({ ...actionLoading, [vendorId]: false });
+      alert(err.message || "Failed to approve.");
     }
   };
 
-  if (loading) return <p className="loading">Loading pending vendors...</p>;
-  if (error) return <p className="error">{error}</p>;
+  const reject = async (id) => {
+    try {
+      await StoreAPI.rejectVendor(id);
+      alert("Vendor rejected!");
+      fetchPending();
+    } catch (err) {
+      alert(err.message || "Failed to reject.");
+    }
+  };
 
   return (
     <div className="admin-container">
       <h2>Pending Vendor Applications</h2>
-      {vendors.length === 0 && <p>No pending applications</p>}
-      <div className="vendor-list">
-        {vendors.map((vendor) => (
-          <div key={vendor.id} className="vendor-card">
-            <h3>{vendor.shop_name}</h3>
-            {vendor.whatsapp && <p>WhatsApp: {vendor.whatsapp}</p>}
-            {vendor.description && <p>{vendor.description}</p>}
-            <div className="vendor-actions">
-              <button
-                className="approve-btn"
-                disabled={actionLoading[vendor.id]}
-                onClick={() => handleAction(vendor.id, "approve")}
-              >
-                {actionLoading[vendor.id] ? "Processing..." : "Approve"}
-              </button>
-              <button
-                className="reject-btn"
-                disabled={actionLoading[vendor.id]}
-                onClick={() => handleAction(vendor.id, "reject")}
-              >
-                {actionLoading[vendor.id] ? "Processing..." : "Reject"}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <p>Loading...</p>
+      ) : pendingVendors.length === 0 ? (
+        <p>No pending applications.</p>
+      ) : (
+        <ul className="vendor-list">
+          {pendingVendors.map((v) => (
+            <li key={v.id} className="vendor-card">
+              <h3>{v.shop_name}</h3>
+              {v.description && <p>{v.description}</p>}
+              {v.whatsapp && <p>WhatsApp: {v.whatsapp}</p>}
+              <div className="vendor-actions">
+                <button onClick={() => approve(v.id)}>Approve</button>
+                <button onClick={() => reject(v.id)}>Reject</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

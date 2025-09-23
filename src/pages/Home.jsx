@@ -1,4 +1,3 @@
-// Home.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
@@ -6,21 +5,30 @@ import "./Home.css";
 
 export default function Home() {
   const navigate = useNavigate();
-
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
 
-  // Check if token exists and fetch user info
+  // Replace this with your email for super admin
+  const SUPER_ADMIN_EMAIL = "your_email@example.com";
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    setUser({ role: payload.role, id: payload.sub });
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      setUser({
+        role: payload.role,
+        id: payload.sub,
+        email: payload.email,
+        isSuperAdmin: payload.email === SUPER_ADMIN_EMAIL,
+      });
 
-    // If customer, fetch products
-    if (payload.role === "customer") {
-      StoreAPI.listProducts().then(setProducts).catch(console.error);
+      if (payload.role === "customer") {
+        StoreAPI.listProducts().then(setProducts).catch(console.error);
+      }
+    } catch (err) {
+      console.error(err);
     }
   }, []);
 
@@ -43,8 +51,10 @@ export default function Home() {
               Apply as Vendor
             </button>
           )}
-          {user?.role === "admin" && (
-            <button onClick={() => navigate("/admin")}>Admin Panel</button>
+          {user?.isSuperAdmin && (
+            <button className="admin-icon" onClick={() => navigate("/admin")}>
+              🛠 Admin
+            </button>
           )}
           {user && <button onClick={handleLogout}>Logout</button>}
         </div>
