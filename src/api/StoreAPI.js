@@ -9,7 +9,7 @@ const API = axios.create({ baseURL: BASE_URL });
 
 // Attach token automatically
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token"); // <-- change from "access_token" to "token"
+  const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -19,13 +19,14 @@ API.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token"); // <-- change from "access_token" to "token"
+      localStorage.removeItem("token");
       alert("Session expired. Please login again.");
       window.location.reload();
     }
     return Promise.reject(error);
   }
 );
+
 // -------------------------
 // Products
 // -------------------------
@@ -37,14 +38,18 @@ export const listProducts = async () => {
 export const createProduct = async (data) => {
   const formData = new FormData();
   Object.entries(data).forEach(([k, v]) => v != null && formData.append(k, v));
-  const res = await API.post("/products", formData, { headers: { "Content-Type": "multipart/form-data" } });
+  const res = await API.post("/products", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return res.data;
 };
 
 export const updateProduct = async (productId, data) => {
   const formData = new FormData();
   Object.entries(data).forEach(([k, v]) => v != null && formData.append(k, v));
-  const res = await API.put(`/products/${productId}`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+  const res = await API.put(`/products/${productId}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return res.data;
 };
 

@@ -13,18 +13,19 @@ export default function Home() {
   const [vendorProducts, setVendorProducts] = useState([]);
 
   // -------------------------
-  // Persistent login
+  // Persistent login with JWT validation
   // -------------------------
   useEffect(() => {
-    const token = localStorage.getItem("token"); // ✅ fixed
+    const token = localStorage.getItem("token");
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.exp * 1000 < Date.now()) throw new Error("Token expired");
         setUser({ id: payload.sub, email: payload.email || "" });
         setRole(payload.role || "customer");
         setPage("dashboard");
       } catch {
-        localStorage.removeItem("token"); // ✅ fixed
+        localStorage.removeItem("token");
       }
     }
   }, []);
@@ -33,7 +34,7 @@ export default function Home() {
   // Fetch dashboard data
   // -------------------------
   const fetchDashboardData = useCallback(async () => {
-    if (!user) return;
+    if (!user || !role) return;
     try {
       const allProducts = await StoreAPI.listProducts();
       setProducts(allProducts);
@@ -55,8 +56,8 @@ export default function Home() {
   }, [role, user]);
 
   useEffect(() => {
-    if (page === "dashboard" && user) fetchDashboardData();
-  }, [page, user, fetchDashboardData]);
+    if (page === "dashboard" && user && role) fetchDashboardData();
+  }, [page, user, role, fetchDashboardData]);
 
   // -------------------------
   // Auth Handlers
@@ -89,7 +90,7 @@ export default function Home() {
       );
       const result = await res.json();
       if (res.ok) {
-        localStorage.setItem("token", result.access_token); // ✅ fixed
+        localStorage.setItem("token", result.access_token);
         const payload = JSON.parse(atob(result.access_token.split(".")[1]));
         setUser({ id: payload.sub, email: data.email });
         setRole(payload.role || "customer");
@@ -119,7 +120,7 @@ export default function Home() {
       );
       const result = await res.json();
       if (res.ok) {
-        localStorage.setItem("token", result.access_token); // ✅ fixed
+        localStorage.setItem("token", result.access_token);
         const payload = JSON.parse(atob(result.access_token.split(".")[1]));
         setUser({ id: payload.sub, email: data.email });
         setRole(payload.role || "customer");
@@ -134,7 +135,7 @@ export default function Home() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); // ✅ fixed
+    localStorage.removeItem("token");
     setUser(null);
     setRole(null);
     setPage("login");
