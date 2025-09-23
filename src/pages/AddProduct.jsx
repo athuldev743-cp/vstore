@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import * as StoreAPI from "../api/StoreAPI";
 import "./AddProduct.css";
+
 export default function AddProduct({ onProductAdded }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
-  const [file, setFile] = useState(null); // ✅ file state
+  const [file, setFile] = useState(null); // product image
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,11 +15,11 @@ export default function AddProduct({ onProductAdded }) {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("description", description);
-      formData.append("price", price);
-      formData.append("stock", stock);
-      if (file) formData.append("file", file); // append file only if selected
+      formData.append("price", price); // price per kg
+      formData.append("stock", stock); // stock in kg
+      if (file) formData.append("file", file);
 
-      await StoreAPI.addProduct(formData); // backend should accept multipart/form-data
+      await StoreAPI.addProduct(formData); // API handles multipart/form-data
       alert("Product added successfully!");
 
       // reset form
@@ -54,22 +55,26 @@ export default function AddProduct({ onProductAdded }) {
         />
         <input
           type="number"
-          placeholder="Price"
+          step="0.01"
+          placeholder="Price per kg (₹)"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           required
         />
         <input
           type="number"
-          placeholder="Stock"
+          step="0.01"
+          placeholder="Stock in kg"
           value={stock}
           onChange={(e) => setStock(e.target.value)}
           required
         />
         <input
           type="file"
-          onChange={(e) => setFile(e.target.files[0])} // ✅ file input
+          accept="image/*"
+          onChange={(e) => setFile(e.target.files[0])}
         />
+        <small>Price in ₹ per kg, Stock in kg (decimals allowed)</small>
         <button type="submit">Add Product</button>
       </form>
     </div>
