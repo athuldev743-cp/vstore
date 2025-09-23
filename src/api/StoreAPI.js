@@ -1,66 +1,65 @@
-import axios from "axios";
+// StoreAPI.js
+const API_BASE = "https://virtual-store-backed.onrender.com/api";
 
-const BASE_URL = "https://virtual-store-backed.onrender.com/api/store";
+const getToken = () => localStorage.getItem("token");
 
-const API = axios.create({ baseURL: BASE_URL });
+const request = async (endpoint, options = {}) => {
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+    Authorization: getToken() ? `Bearer ${getToken()}` : undefined,
+  };
 
-// Attach token from localStorage to every request
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  if (res.status === 401) {
+    throw new Error("Unauthorized: Session expired. Please login again.");
   }
-  return config;
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || res.statusText);
+  return data;
+};
+
+// -------------------------
+// Auth
+// -------------------------
+export const signup = (data) => request("/users/signup", {
+  method: "POST",
+  body: JSON.stringify(data),
 });
 
-// Handle 401 globally
-API.interceptors.response.use(
-  (res) => res,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      alert("Session expired. Please login again.");
-      window.location.reload();
-    }
-    return Promise.reject(error);
-  }
-);
-
-export const signup = async (data) => {
-  const res = await axios.post(
-    "https://virtual-store-backed.onrender.com/api/users/signup",
-    data
-  );
-  return res.data;
-};
-
-export const login = async (data) => {
-  const res = await axios.post(
-    "https://virtual-store-backed.onrender.com/api/users/login",
-    data
-  );
-  return res.data;
-};
+export const login = (data) => request("/users/login", {
+  method: "POST",
+  body: JSON.stringify(data),
+});
 
 // -------------------------
-// Products & Orders
+// Store
 // -------------------------
-export const listProducts = async () => (await API.get("/products")).data || [];
-export const getOrders = async () => (await API.get("/orders")).data || [];
-export const placeOrder = async (productId, quantity = 1) =>
-  (await API.post("/orders", { product_id: productId, quantity })).data;
+export const listProducts = () => request("/store/products");
+
+export const getOrders = () => request("/store/orders");
+
+export const placeOrder = (product_id, quantity) =>
+  request("/store/orders", {
+    method: "POST",
+    body: JSON.stringify({ product_id, quantity }),
+  });
 
 // -------------------------
-// Vendors
+// Vendor
 // -------------------------
-export const listPendingVendors = async () =>
-  (await API.get("/vendors/pending")).data || [];
+export const applyVendor = (data) =>
+  request("/vendors/apply", { method: "POST", body: JSON.stringify(data) });
 
-export const applyVendor = async (data) =>
-  (await API.post("/apply-vendor", data)).data;
+export const listPendingVendors = () => request("/vendors/pending");
 
-export const approveVendor = async (vendorId) =>
-  (await API.post(`/vendors/${vendorId}/approve`)).data;
+export const approveVendor = (vendor_id) =>
+  request(`/vendors/${vendor_id}/approve`, { method: "POST" });
 
-export const rejectVendor = async (vendorId) =>
-  (await API.post(`/vendors/${vendorId}/reject`)).data;
+export const rejectVendor = (vendor_id) =>
+  request(`/vendors/${vendor_id}/reject`, { method: "POST" });

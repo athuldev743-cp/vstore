@@ -31,7 +31,7 @@ export default function Home() {
   }, []);
 
   // -------------------------
-  // Fetch dashboard data
+  // Dashboard data fetch
   // -------------------------
   const fetchDashboardData = useCallback(async () => {
     if (!user || !role) return;
@@ -51,66 +51,69 @@ export default function Home() {
         setPendingVendors(pending);
       }
     } catch (err) {
-      console.error("Dashboard fetch failed:", err.message);
+      console.error("Dashboard fetch failed:", err);
+      if (err.message.includes("Unauthorized")) handleLogout();
     }
   }, [role, user]);
 
   useEffect(() => {
-    if (page === "dashboard" && user && role) fetchDashboardData();
+    if (page === "dashboard" && user && role) {
+      const token = localStorage.getItem("token");
+      if (token) fetchDashboardData();
+      else setPage("login");
+    }
   }, [page, user, role, fetchDashboardData]);
 
   // -------------------------
   // Auth Handlers
   // -------------------------
   const handleSignup = async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const data = {
-    username: form.username.value.trim(),
-    email: form.email.value.trim(),
-    password: form.password.value,
+    e.preventDefault();
+    const form = e.target;
+    const data = {
+      username: form.username.value.trim(),
+      email: form.email.value.trim(),
+      password: form.password.value,
+    };
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+    if (!passwordRegex.test(data.password)) {
+      return alert(
+        "Password must be 8+ chars with 1 uppercase, 1 lowercase, 1 number, 1 special char"
+      );
+    }
+
+    try {
+      const result = await StoreAPI.signup(data);
+      localStorage.setItem("token", result.access_token);
+      const payload = JSON.parse(atob(result.access_token.split(".")[1]));
+      setUser({ id: payload.sub, email: data.email });
+      setRole(payload.role || "customer");
+      setPage("dashboard");
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.detail || err.message || "Server connection failed");
+    }
   };
 
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-  if (!passwordRegex.test(data.password)) {
-    return alert(
-      "Password must be 8+ chars with 1 uppercase, 1 lowercase, 1 number, 1 special char"
-    );
-  }
-
-  try {
-    const result = await StoreAPI.signup(data);
-    localStorage.setItem("token", result.access_token);
-    const payload = JSON.parse(atob(result.access_token.split(".")[1]));
-    setUser({ id: payload.sub, email: data.email });
-    setRole(payload.role || "customer");
-    setPage("dashboard");
-  } catch (err) {
-    console.error(err);
-    alert(err.response?.data?.detail || "Server connection failed");
-  }
-};
-
-
   const handleLogin = async (e) => {
-  e.preventDefault();
-  const form = e.target;
-  const data = { email: form.email.value.trim(), password: form.password.value };
+    e.preventDefault();
+    const form = e.target;
+    const data = { email: form.email.value.trim(), password: form.password.value };
 
-  try {
-    const result = await StoreAPI.login(data);
-    localStorage.setItem("token", result.access_token);
-    const payload = JSON.parse(atob(result.access_token.split(".")[1]));
-    setUser({ id: payload.sub, email: data.email });
-    setRole(payload.role || "customer");
-    setPage("dashboard");
-  } catch (err) {
-    console.error(err);
-    alert(err.response?.data?.detail || "Server connection failed");
-  }
-};
-
+    try {
+      const result = await StoreAPI.login(data);
+      localStorage.setItem("token", result.access_token);
+      const payload = JSON.parse(atob(result.access_token.split(".")[1]));
+      setUser({ id: payload.sub, email: data.email });
+      setRole(payload.role || "customer");
+      setPage("dashboard");
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.detail || err.message || "Server connection failed");
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -162,8 +165,14 @@ export default function Home() {
             {p.name} - ${p.price}{" "}
             <button
               onClick={async () => {
-                await StoreAPI.placeOrder(p.id, 1);
-                fetchDashboardData();
+                try {
+                  await StoreAPI.placeOrder(p.id, 1);
+                  fetchDashboardData();
+                } catch (err) {
+                  console.error(err);
+                  if (err.message.includes("Unauthorized")) handleLogout();
+                  alert("Order failed");
+                }
               }}
             >
               Order
