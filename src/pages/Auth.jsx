@@ -1,39 +1,32 @@
+// src/pages/Auth.jsx
 import React, { useState } from "react";
 import * as StoreAPI from "../api/StoreAPI";
-import "./Auth.css"; // optional styling
+import "./Auth.css";
 
 export default function Auth({ onLoginSuccess }) {
-  const [isLogin, setIsLogin] = useState(true); // toggle between login/signup
+  const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
 
-  // -------------------------
-  // Login handler
-  // -------------------------
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const result = await StoreAPI.login({ email, password });
       localStorage.setItem("token", result.access_token);
-      onLoginSuccess(); // callback to load dashboard
+      onLoginSuccess();
     } catch (err) {
-      console.error(err);
       alert(err.message || "Login failed");
     }
   };
 
-  // -------------------------
-  // Signup handler
-  // -------------------------
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
       const result = await StoreAPI.signup({ username, email, password });
       localStorage.setItem("token", result.access_token);
-      onLoginSuccess(); // callback to load dashboard
+      onLoginSuccess();
     } catch (err) {
-      console.error(err);
       alert(err.message || "Signup failed");
     }
   };
@@ -69,7 +62,7 @@ export default function Auth({ onLoginSuccess }) {
         </>
       ) : (
         <>
-          <h2>Signup</h2>
+          <h2>Sign Up</h2>
           <form onSubmit={handleSignup}>
             <input
               type="text"

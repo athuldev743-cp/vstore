@@ -1,49 +1,78 @@
-// Home.jsx
+// src/pages/Home.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
 import Auth from "./Auth";
+import ApplyVendor from "./ApplyVendor";
 import * as StoreAPI from "../api/StoreAPI";
 import "./Home.css";
 
 export default function Home() {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
-  const [page, setPage] = useState("home"); // home | dashboard | applyVendor
-  const navigate = useNavigate();
+  const [showAuth, setShowAuth] = useState(false);
+  const [showApplyVendor, setShowApplyVendor] = useState(false);
+  const [products, setProducts] = useState([]);
 
+  useEffect(() => {
+    if (userLoggedIn) {
+      StoreAPI.listProducts()
+        .then(setProducts)
+        .catch(console.error);
+    }
+  }, [userLoggedIn]);
+
+  // Called after successful login/signup
   const handleLoginSuccess = () => {
     setUserLoggedIn(true);
-    setPage("dashboard"); // show products & vendor button
+    setShowAuth(false);
   };
+
+  if (showAuth) {
+    return <Auth onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  if (showApplyVendor) {
+    return <ApplyVendor onBack={() => setShowApplyVendor(false)} />;
+  }
 
   return (
     <div className="home-container">
       <header className="home-header">
-        <h1 className="logo">VStore</h1>
+        <h1>VStore</h1>
         {!userLoggedIn && (
-          <button
-            className="signup-btn"
-            onClick={() => setPage("auth")}
-          >
-            Signup / Login
+          <button className="signup-btn" onClick={() => setShowAuth(true)}>
+            Sign Up / Login
           </button>
         )}
       </header>
 
-      <main className="home-content">
-        {page === "home" && <h2>Welcome to VStore!</h2>}
+      {userLoggedIn && (
+        <>
+          <button
+            className="apply-vendor-btn"
+            onClick={() => setShowApplyVendor(true)}
+          >
+            Apply as Vendor
+          </button>
 
-        {page === "auth" && <Auth onLoginSuccess={handleLoginSuccess} />}
-
-        {page === "dashboard" && userLoggedIn && (
-          <div>
-            <h2>Products</h2>
-            {/* fetch and display products */}
-            <button onClick={() => setPage("applyVendor")}>Apply as Vendor</button>
-          </div>
-        )}
-
-        {page === "applyVendor" && <ApplyVendor />}
-      </main>
+          <main className="products-list">
+            {products.map((p) => (
+              <div key={p.id} className="product-card">
+                <h3>{p.name}</h3>
+                <p>Price: ₹{p.price}</p>
+                <button
+                  onClick={() =>
+                    StoreAPI.placeOrder(p.id, 1).then(() =>
+                      alert("Order placed!")
+                    )
+                  }
+                >
+                  Order
+                </button>
+              </div>
+            ))}
+          </main>
+        </>
+      )}
     </div>
   );
 }
