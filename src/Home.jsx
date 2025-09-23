@@ -1,10 +1,11 @@
+// Home.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { ShoppingCart, User2 } from "lucide-react";
 import * as StoreAPI from "./api/StoreAPI";
 import "./Home.css";
 
 export default function Home() {
-  const [page, setPage] = useState("login");
+  const [page, setPage] = useState("login"); // login | signup | dashboard | apply-vendor
   const [role, setRole] = useState(null);
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
@@ -13,7 +14,7 @@ export default function Home() {
   const [vendorProducts, setVendorProducts] = useState([]);
 
   // -------------------------
-  // Persistent login with JWT validation
+  // Persistent login check
   // -------------------------
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -33,38 +34,35 @@ export default function Home() {
   // -------------------------
   // Dashboard data fetch
   // -------------------------
- const fetchDashboardData = useCallback(async () => {
-  if (!user || !role) return;
-  try {
-    const allProducts = await StoreAPI.listProducts();
-    setProducts(allProducts);
+  const fetchDashboardData = useCallback(async () => {
+    if (!user || !role) return;
+    try {
+      const allProducts = await StoreAPI.listProducts();
+      setProducts(allProducts || []);
 
-    const allOrders = await StoreAPI.getOrders();
-    setOrders(allOrders);
+      const allOrders = await StoreAPI.getOrders();
+      setOrders(allOrders || []);
 
-    if (role === "vendor") {
-      setVendorProducts(allProducts.filter((p) => p.vendor_id === user.id));
+      if (role === "vendor") {
+        setVendorProducts(allProducts.filter((p) => p.vendor_id === user.id));
+      }
+
+      if (role === "admin") {
+        const pending = await StoreAPI.listPendingVendors();
+        setPendingVendors(pending || []);
+      }
+    } catch (err) {
+      console.error("Dashboard fetch failed:", err.message);
+      if (err.message.includes("Unauthorized")) {
+        alert("Session expired. Please login again.");
+        handleLogout();
+      }
     }
-
-    if (role === "admin") {
-      const pending = await StoreAPI.listPendingVendors();
-      setPendingVendors(pending);
-    }
-  } catch (err) {
-    console.error("Dashboard fetch failed:", err);
-    if (err.message.includes("Unauthorized")) {
-      alert("Session expired. Please login again.");
-      handleLogout(); // <- logout and redirect to login
-    }
-  }
-}, [role, user]);
-
+  }, [role, user]);
 
   useEffect(() => {
     if (page === "dashboard" && user && role) {
-      const token = localStorage.getItem("token");
-      if (token) fetchDashboardData();
-      else setPage("login");
+      fetchDashboardData();
     }
   }, [page, user, role, fetchDashboardData]);
 
@@ -96,8 +94,8 @@ export default function Home() {
       setRole(payload.role || "customer");
       setPage("dashboard");
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.detail || err.message || "Server connection failed");
+      console.error("Signup failed:", err.message);
+      alert(err.message || "Server connection failed");
     }
   };
 
@@ -114,8 +112,8 @@ export default function Home() {
       setRole(payload.role || "customer");
       setPage("dashboard");
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.detail || err.message || "Server connection failed");
+      console.error("Login failed:", err.message);
+      alert(err.message || "Server connection failed");
     }
   };
 
@@ -139,7 +137,9 @@ export default function Home() {
       </form>
       <p>
         Don’t have an account?{" "}
-        <span className="link" onClick={() => setPage("signup")}>Sign up</span>
+        <span className="link" onClick={() => setPage("signup")}>
+          Sign up
+        </span>
       </p>
     </div>
   );
@@ -155,7 +155,9 @@ export default function Home() {
       </form>
       <p>
         Already have an account?{" "}
-        <span className="link" onClick={() => setPage("login")}>Login</span>
+        <span className="link" onClick={() => setPage("login")}>
+          Login
+        </span>
       </p>
     </div>
   );
@@ -173,7 +175,7 @@ export default function Home() {
                   await StoreAPI.placeOrder(p.id, 1);
                   fetchDashboardData();
                 } catch (err) {
-                  console.error(err);
+                  console.error("Order failed:", err.message);
                   if (err.message.includes("Unauthorized")) handleLogout();
                   alert("Order failed");
                 }
@@ -187,7 +189,9 @@ export default function Home() {
       <h3>My Orders</h3>
       <ul>
         {orders.map((o) => (
-          <li key={o.id}>{o.product_id} - {o.status}</li>
+          <li key={o.id}>
+            {o.product_id} - {o.status}
+          </li>
         ))}
       </ul>
       <button onClick={() => setPage("apply-vendor")}>Apply as Vendor</button>
@@ -199,7 +203,9 @@ export default function Home() {
       <h3>My Products</h3>
       <ul>
         {vendorProducts.map((p) => (
-          <li key={p.id}>{p.name} - ${p.price} - Stock: {p.stock}</li>
+          <li key={p.id}>
+            {p.name} - ${p.price} - Stock: {p.stock}
+          </li>
         ))}
       </ul>
     </div>
@@ -212,8 +218,22 @@ export default function Home() {
         {pendingVendors.map((v) => (
           <li key={v.id}>
             {v.shop_name} - {v.status}{" "}
-            <button onClick={async () => { await StoreAPI.approveVendor(v.id); fetchDashboardData(); }}>Approve</button>
-            <button onClick={async () => { await StoreAPI.rejectVendor(v.id); fetchDashboardData(); }}>Reject</button>
+            <button
+              onClick={async () => {
+                await StoreAPI.approveVendor(v.id);
+                fetchDashboardData();
+              }}
+            >
+              Approve
+            </button>
+            <button
+              onClick={async () => {
+                await StoreAPI.rejectVendor(v.id);
+                fetchDashboardData();
+              }}
+            >
+              Reject
+            </button>
           </li>
         ))}
       </ul>
@@ -224,14 +244,17 @@ export default function Home() {
     const handleApply = async (e) => {
       e.preventDefault();
       const form = e.target;
-      const data = { shop_name: form.name.value.trim(), whatsapp: form.whatsapp.value.trim() };
+      const data = {
+        shop_name: form.name.value.trim(),
+        whatsapp: form.whatsapp.value.trim(),
+      };
       try {
         await StoreAPI.applyVendor(data);
         alert("Vendor application submitted!");
         setPage("dashboard");
         fetchDashboardData();
       } catch (err) {
-        console.error(err);
+        console.error("Vendor application failed:", err.message);
         alert("Application failed");
       }
     };
@@ -241,7 +264,12 @@ export default function Home() {
         <h3>Apply as Vendor</h3>
         <form onSubmit={handleApply}>
           <input name="name" placeholder="Vendor Name" required />
-          <input name="whatsapp" placeholder="WhatsApp Number" required pattern="^\+?\d{10,15}$" />
+          <input
+            name="whatsapp"
+            placeholder="WhatsApp Number"
+            required
+            pattern="^\+?\d{10,15}$"
+          />
           <button type="submit">Apply</button>
         </form>
       </div>
