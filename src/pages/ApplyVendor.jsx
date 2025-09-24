@@ -19,10 +19,12 @@ export default function ApplyVendor() {
     setLoading(true);
     setError("");
     try {
-      await StoreAPI.applyVendor(form); // simplified call
+      // Make sure your API expects shop_name, whatsapp, description
+      await StoreAPI.applyVendor(form);
       alert("Application submitted successfully!");
       navigate("/"); // go back home
     } catch (err) {
+      console.error(err);
       setError(err.message || "Failed to submit application");
     } finally {
       setLoading(false);
@@ -44,7 +46,7 @@ export default function ApplyVendor() {
         <input
           type="text"
           name="whatsapp"
-          placeholder="WhatsApp"
+          placeholder="WhatsApp Number"
           value={form.whatsapp}
           onChange={handleChange}
         />
@@ -58,7 +60,7 @@ export default function ApplyVendor() {
           {loading ? "Submitting..." : "Submit"}
         </button>
       </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="error">{error}</p>}
     </div>
   );
 }

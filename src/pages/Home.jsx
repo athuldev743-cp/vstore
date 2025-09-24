@@ -2,56 +2,50 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
+import AddProduct from "./AddProduct";
 import "./Home.css";
 
-export default function Home({ user, vendorApproved, onLogout }) {
+export default function Home({ user, onLogout }) {
   const navigate = useNavigate();
   const SUPER_ADMIN_EMAIL = "your_email@example.com"; // replace with your email
+  const [vendorApproved, setVendorApproved] = useState(false);
+  const [vendors, setVendors] = useState([]);
 
-  function VendorList() {
-    const [vendors, setVendors] = useState([]);
-    const navigate = useNavigate();
+  // Fetch vendor status for logged-in user
+  useEffect(() => {
+    if (user?.role === "vendor" || user?.role === "customer") {
+      StoreAPI.getVendorStatus(user._id)
+        .then((res) => setVendorApproved(res.status === "approved"))
+        .catch((err) => console.error(err));
+    }
+  }, [user]);
 
-    useEffect(() => {
+  // Fetch all approved vendors to show on Home page
+  useEffect(() => {
+    if (user) {
       StoreAPI.listVendors()
         .then(setVendors)
         .catch((err) => console.error("Failed to load vendors:", err));
-    }, []);
+    }
+  }, [user]);
 
-    if (vendors.length === 0) return <p>No stores available.</p>;
-
-    return (
-      <ul className="vendor-list">
-        {vendors.map((v) => (
-          <li
-            key={v.id}
-            className="vendor-card"
-            onClick={() => navigate(`/vendor/${v.id}`)}
-          >
-            <strong>{v.store_name || "Unnamed Store"}</strong>
-          </li>
-        ))}
-      </ul>
-    );
-  }
+  const handleVendorClick = (vendorId) => {
+    navigate(`/vendor/${vendorId}`);
+  };
 
   return (
     <div className="home-container">
       <header className="home-header">
         <h1 className="logo">VStore</h1>
         <div className="header-buttons">
-          {!user && (
-            <button onClick={() => navigate("/auth")}>Sign Up / Login</button>
-          )}
+          {!user && <button onClick={() => navigate("/auth")}>Sign Up / Login</button>}
 
           {user?.role === "customer" && (
-            <button onClick={() => navigate("/apply-vendor")}>
-              Apply as Vendor
-            </button>
+            <button onClick={() => navigate("/apply-vendor")}>Apply as Vendor</button>
           )}
 
           {user?.role === "vendor" && vendorApproved && (
-            <button onClick={() => navigate("/vendor/products")}>
+            <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
               ➕ Add Product
             </button>
           )}
@@ -70,24 +64,34 @@ export default function Home({ user, vendorApproved, onLogout }) {
             <h2>Welcome to VStore!</h2>
             <p>Sign up or login to see products and place orders.</p>
           </div>
-        ) : user.role === "customer" ? (
-          <div>
-            <h2>Stores</h2>
-            <VendorList />
-          </div>
         ) : (
-          <div className="welcome">
-            <h2>Welcome, {user.role}!</h2>
-            <p>
-              {user.role === "vendor"
-                ? vendorApproved
-                  ? "You can now add products."
-                  : "Your vendor application is pending approval."
-                : "You are a super admin."}
-            </p>
-          </div>
+          <>
+            {user.role === "vendor" && vendorApproved && (
+              <div>
+                <AddProduct onProductAdded={() => alert("Product added successfully!")} />
+              </div>
+            )}
+
+            <h2>Available Stores</h2>
+            {vendors.length === 0 ? (
+              <p>No stores available.</p>
+            ) : (
+              <ul className="vendor-list">
+                {vendors.map((v) => (
+                  <li
+                    key={v.id}
+                    className="vendor-card"
+                    onClick={() => handleVendorClick(v.id)}
+                  >
+                    <strong>{v.shop_name || "Unnamed Store"}</strong>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </main>
     </div>
   );
 }
+ 
