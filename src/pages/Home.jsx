@@ -8,10 +8,11 @@ export default function Home({ user, onLogout }) {
   const navigate = useNavigate();
 
   const [vendorApproved, setVendorApproved] = useState(false);
+  const [showAddProduct, setShowAddProduct] = useState(false);
   const [vendors, setVendors] = useState([]);
   const [loadingVendors, setLoadingVendors] = useState(true);
 
-  // Update vendorApproved if user is vendor
+  // Check vendor status
   useEffect(() => {
     if (user?.role === "vendor") {
       StoreAPI.getVendorStatus(user.id)
@@ -22,7 +23,7 @@ export default function Home({ user, onLogout }) {
     }
   }, [user]);
 
-  // Fetch all approved vendors
+  // Fetch approved vendors
   useEffect(() => {
     setLoadingVendors(true);
     StoreAPI.listVendors()
@@ -47,12 +48,8 @@ export default function Home({ user, onLogout }) {
 
           {/* Vendor */}
           {user?.role === "vendor" && vendorApproved && (
-            <button
-              onClick={() =>
-                document.querySelector(".add-product-container")?.scrollIntoView({ behavior: "smooth" })
-              }
-            >
-              ➕ Add Product
+            <button onClick={() => setShowAddProduct(!showAddProduct)}>
+              {showAddProduct ? "➖ Close Add Product" : "➕ Add Product"}
             </button>
           )}
 
@@ -74,14 +71,14 @@ export default function Home({ user, onLogout }) {
           </div>
         ) : (
           <>
-            {/* Vendor product section */}
-            {user.role === "vendor" && vendorApproved && (
+            {/* Vendor Add Product Section */}
+            {showAddProduct && (
               <div className="add-product-container">
                 <AddProduct onProductAdded={() => alert("Product added successfully!")} />
               </div>
             )}
 
-            {/* Customer / Vendor view of stores */}
+            {/* Stores */}
             <h2>Available Stores</h2>
             {loadingVendors ? (
               <p>Loading stores...</p>
