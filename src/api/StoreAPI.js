@@ -1,4 +1,3 @@
-// StoreAPI.js
 const API_BASE = process.env.REACT_APP_API_URL || "https://virtual-store-backed.onrender.com";
 
 // -------------------------
@@ -13,22 +12,18 @@ const clearToken = () => localStorage.removeItem("token");
 const request = async (endpoint, options = {}) => {
   const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
   const token = getToken();
-
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
 
-  if (res.status === 401) {
+  if (res.status === 401 || res.status === 403) {
     clearToken();
     window.location.href = "/";
-    throw new Error("Unauthorized: Session expired. Please login again.");
+    throw new Error("Unauthorized: Session expired or access denied.");
   }
 
   const data = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    throw new Error(data.detail || res.statusText || "Request failed");
-  }
+  if (!res.ok) throw new Error(data.detail || res.statusText || "Request failed");
 
   return data;
 };
@@ -42,10 +37,11 @@ export const signup = (data) =>
 export const login = (data) =>
   request("/api/users/login", { method: "POST", body: JSON.stringify(data) });
 
+export const getCurrentUser = () => request("/api/users/me");
+
 // -------------------------
 // Store APIs
 // -------------------------
-export const getCurrentUser = () => request("/api/users/me");
 export const listProducts = () => request("/api/store/products");
 export const getOrders = () => request("/api/store/orders");
 export const placeOrder = (data) =>
@@ -68,9 +64,7 @@ export const addProduct = (formData) => {
   const token = getToken();
   return fetch(`${API_BASE}/api/store/products`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
     body: formData,
   }).then(async (res) => {
     const data = await res.json().catch(() => ({}));
@@ -82,11 +76,28 @@ export const addProduct = (formData) => {
 // -------------------------
 // Admin Vendor Management
 // -------------------------
-export const listPendingVendors = () =>
-  request("/api/store/vendors/pending");
+export const listPendingVendors = async () => {
+  const token = getToken();
+  if (!token) throw new Error("Not logged in as admin.");
 
-export const approveVendor = (vendorId) =>
+  const res = await fetch(`${API_BASE}/api/store/vendors/pending`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (res.status === 401 || res.status === 403) {
+    throw new Error("Unauthorized: Admin access required.");
+  }
+
+  const data = await res.json().catch(() => []);
+  if (!res.ok) throw new Error(data.detail || `Failed: ${res.status}`);
+  return data;
+};
+
+export const approveVendor = async (vendorId) =>
   request(`/api/store/vendors/${vendorId}/approve`, { method: "POST" });
 
-export const rejectVendor = (vendorId) =>
+export const rejectVendor = async (vendorId) =>
   request(`/api/store/vendors/${vendorId}/reject`, { method: "POST" });

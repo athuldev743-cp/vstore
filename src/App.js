@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
@@ -11,37 +12,60 @@ import * as StoreAPI from "./api/StoreAPI";
 export default function App() {
   const [user, setUser] = useState(null);
   const [vendorApproved, setVendorApproved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // -------------------------
+  // Fetch current user & vendor status
+  // -------------------------
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      setUser({ role: payload.role, email: payload.email, id: payload.sub });
-    } catch {}
+    const fetchUser = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const currentUser = await StoreAPI.getCurrentUser();
+        setUser(currentUser);
+
+        if (currentUser.role === "vendor") {
+          const status = await StoreAPI.getVendorStatus(currentUser.id);
+          setVendorApproved(status.status === "approved");
+        }
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+        localStorage.removeItem("token");
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
   }, []);
 
-  useEffect(() => {
-    if (user?.role === "vendor") {
-      StoreAPI.getVendorStatus(user.id)
-        .then((res) => setVendorApproved(res.status === "approved"))
-        .catch(() => setVendorApproved(false));
-    }
-  }, [user]);
-
-  const handleLoginSuccess = () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  const handleLoginSuccess = async () => {
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      setUser({ role: payload.role, email: payload.email, id: payload.sub });
-    } catch {}
+      const currentUser = await StoreAPI.getCurrentUser();
+      setUser(currentUser);
+
+      if (currentUser.role === "vendor") {
+        const status = await StoreAPI.getVendorStatus(currentUser.id);
+        setVendorApproved(status.status === "approved");
+      }
+    } catch (err) {
+      console.error("Login fetch user failed:", err);
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUser(null);
+    setVendorApproved(false);
   };
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <Router>
@@ -57,37 +81,37 @@ export default function App() {
             />
           }
         />
+
         {/* Apply Vendor */}
         <Route
           path="/apply-vendor"
-          element={
-            user?.role === "customer" ? <ApplyVendor /> : <Navigate to="/auth" />
-          }
+          element={user?.role === "customer" ? <ApplyVendor /> : <Navigate to="/auth" />}
         />
+
         {/* Auth */}
         <Route
           path="/auth"
-          element={
-            user ? <Navigate to={user.role === "admin" ? "/admin" : "/"} /> : <Auth onLoginSuccess={handleLoginSuccess} />
-          }
+          element={user ? <Navigate to={user.role === "admin" ? "/admin" : "/"} /> : <Auth onLoginSuccess={handleLoginSuccess} />}
         />
+
         {/* Admin */}
         <Route
           path="/admin"
           element={user?.role === "admin" ? <Admin /> : <Navigate to="/" />}
         />
+
         {/* Vendor Add Product */}
         <Route
           path="/vendor/products"
-          element={
-            user?.role === "vendor" && vendorApproved ? <AddProduct /> : <Navigate to="/" />
-          }
+          element={user?.role === "vendor" && vendorApproved ? <AddProduct /> : <Navigate to="/" />}
         />
+
         {/* Vendor Products */}
         <Route
           path="/vendor/:vendorId"
           element={<Products />}
         />
+
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

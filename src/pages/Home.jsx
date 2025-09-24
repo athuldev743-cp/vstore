@@ -1,26 +1,41 @@
-// src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import AddProduct from "./AddProduct";
 import "./Home.css";
 
-export default function Home({ user, onLogout }) {
+export default function Home({ user, setUser, onLogout }) {
   const navigate = useNavigate();
   const SUPER_ADMIN_EMAIL = "your_email@example.com"; // replace with your email
+
   const [vendorApproved, setVendorApproved] = useState(false);
   const [vendors, setVendors] = useState([]);
+  const [loadingUser, setLoadingUser] = useState(true);
 
-  // Fetch vendor status for logged-in user
+  // Fetch current user from token (detect after login/signup)
   useEffect(() => {
-    if (user?.role === "vendor" || user?.role === "customer") {
-      StoreAPI.getVendorStatus(user._id)
-        .then((res) => setVendorApproved(res.status === "approved"))
-        .catch((err) => console.error(err));
-    }
+    const fetchUser = async () => {
+      setLoadingUser(true);
+      try {
+        const currentUser = await StoreAPI.getCurrentUser();
+        setUser(currentUser); // set in parent state
+        // Check if user is vendor and approved
+        if (currentUser.role === "vendor" || currentUser.role === "customer") {
+          const res = await StoreAPI.getVendorStatus(currentUser._id);
+          setVendorApproved(res.status === "approved");
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    if (!user) fetchUser();
+    else setLoadingUser(false);
   }, [user]);
 
-  // Fetch all approved vendors to show on Home page
+  // Fetch all approved vendors
   useEffect(() => {
     if (user) {
       StoreAPI.listVendors()
@@ -33,6 +48,8 @@ export default function Home({ user, onLogout }) {
     navigate(`/vendor/${vendorId}`);
   };
 
+  if (loadingUser) return <p>Loading...</p>;
+
   return (
     <div className="home-container">
       <header className="home-header">
@@ -40,12 +57,18 @@ export default function Home({ user, onLogout }) {
         <div className="header-buttons">
           {!user && <button onClick={() => navigate("/auth")}>Sign Up / Login</button>}
 
-          {user?.role === "customer" && (
+          {user?.role === "customer" && !vendorApproved && (
             <button onClick={() => navigate("/apply-vendor")}>Apply as Vendor</button>
           )}
 
           {user?.role === "vendor" && vendorApproved && (
-            <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            <button
+              onClick={() =>
+                document
+                  .querySelector(".add-product-container")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+            >
               ➕ Add Product
             </button>
           )}
@@ -94,4 +117,3 @@ export default function Home({ user, onLogout }) {
     </div>
   );
 }
- 

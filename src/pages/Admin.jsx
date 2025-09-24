@@ -1,18 +1,30 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import "./Admin.css";
 
-export default function Admin() {
+export default function Admin({ user }) {
+  const navigate = useNavigate();
   const [pendingVendors, setPendingVendors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Redirect non-admin users
+  useEffect(() => {
+    if (!user || user.role !== "admin") {
+      navigate("/"); // redirect to home if not admin
+    }
+  }, [user]);
 
   const fetchPending = async () => {
+    setLoading(true);
+    setError("");
     try {
       const data = await StoreAPI.listPendingVendors();
       setPendingVendors(data);
     } catch (err) {
       console.error(err);
-      alert("Failed to load pending vendors.");
+      setError(err.message || "Failed to load pending vendors.");
     } finally {
       setLoading(false);
     }
@@ -47,6 +59,8 @@ export default function Admin() {
       <h2>Pending Vendor Applications</h2>
       {loading ? (
         <p>Loading...</p>
+      ) : error ? (
+        <p style={{ color: "red" }}>{error}</p>
       ) : pendingVendors.length === 0 ? (
         <p>No pending applications.</p>
       ) : (
