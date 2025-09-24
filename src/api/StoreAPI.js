@@ -10,29 +10,41 @@ const clearToken = () => localStorage.removeItem("token");
 // Centralized request
 // -------------------------
 const request = async (endpoint, options = {}) => {
-  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
-  const token = getToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
+  try {
+    const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+    const token = getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+    const res = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
 
-  if (res.status === 401 || res.status === 403) {
-    clearToken();
-    window.location.href = "/";
-    throw new Error("Unauthorized: Session expired or access denied.");
+    if (!res.ok) {
+      const msg = data.detail || res.statusText || `Request failed (${res.status})`;
+      if (res.status === 401 || res.status === 403) {
+        clearToken();
+        window.location.href = "/";
+        throw new Error("Unauthorized: Session expired or access denied.");
+      }
+      throw new Error(msg);
+    }
+
+    return data;
+  } catch (err) {
+    console.error("API Request Error:", endpoint, err);
+    throw err;
   }
-
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || res.statusText || "Request failed");
-
-  return data;
 };
 
 // -------------------------
 // Auth APIs
 // -------------------------
-export const signup = (data) =>
-  request("/api/users/signup", {
+export const signup = async (data) => {
+  return request("/api/users/signup", {
     method: "POST",
     body: JSON.stringify({
       username: data.username,
@@ -40,45 +52,64 @@ export const signup = (data) =>
       password: data.password,
     }),
   });
+};
 
+export const login = async (data) => {
+  return request("/api/users/login", {
+    method: "POST",
+    body: JSON.stringify({
+      email: data.email,
+      password: data.password,
+    }),
+  });
+};
 
-export const login = (data) =>
-  request("/api/users/login", { method: "POST", body: JSON.stringify(data) });
-
-export const getCurrentUser = () => request("/api/users/me");
+export const getCurrentUser = async () => request("/api/users/me");
 
 // -------------------------
 // Store APIs
 // -------------------------
-export const listProducts = () => request("/api/store/products");
-export const getOrders = () => request("/api/store/orders");
-export const placeOrder = (data) =>
+export const listProducts = async () => request("/api/store/products");
+export const getOrders = async () => request("/api/store/orders");
+export const placeOrder = async (data) =>
   request("/api/store/orders", { method: "POST", body: JSON.stringify(data) });
 
 // -------------------------
 // Vendor APIs
 // -------------------------
-export const applyVendor = (data) =>
+export const applyVendor = async (data) =>
   request("/api/store/vendors/apply", { method: "POST", body: JSON.stringify(data) });
 
-export const getVendorStatus = (userId) =>
-  request(`/api/store/vendors/status/${userId}`);
-
-export const listVendors = () => request("/api/store/vendors");
-export const getVendorProducts = (vendorId) =>
+export const getVendorStatus = async (userId) => request(`/api/store/vendors/status/${userId}`);
+export const listVendors = async () => request("/api/store/vendors");
+export const getVendorProducts = async (vendorId) =>
   request(`/api/store/vendors/${vendorId}/products`);
 
-export const addProduct = (formData) => {
+export const addProduct = async (formData) => {
   const token = getToken();
-  return fetch(`${API_BASE}/api/store/products`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-  }).then(async (res) => {
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || `Failed: ${res.status}`);
+  if (!token) throw new Error("Not logged in");
+
+  try {
+    const res = await fetch(`${API_BASE}/api/store/products`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (!res.ok) throw new Error(data.detail || `Failed to add product (${res.status})`);
+
     return data;
-  });
+  } catch (err) {
+    console.error("Add Product Error:", err);
+    throw err;
+  }
 };
 
 // -------------------------
@@ -88,20 +119,28 @@ export const listPendingVendors = async () => {
   const token = getToken();
   if (!token) throw new Error("Not logged in as admin.");
 
-  const res = await fetch(`${API_BASE}/api/store/vendors/pending`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  try {
+    const res = await fetch(`${API_BASE}/api/store/vendors/pending`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  if (res.status === 401 || res.status === 403) {
-    throw new Error("Unauthorized: Admin access required.");
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = [];
+    }
+
+    if (!res.ok) throw new Error(data.detail || `Failed: ${res.status}`);
+
+    return data;
+  } catch (err) {
+    console.error("List Pending Vendors Error:", err);
+    throw err;
   }
-
-  const data = await res.json().catch(() => []);
-  if (!res.ok) throw new Error(data.detail || `Failed: ${res.status}`);
-  return data;
 };
 
 export const approveVendor = async (vendorId) =>
