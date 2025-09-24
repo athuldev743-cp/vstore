@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import * as StoreAPI from "../api/StoreAPI";
-
+import "./Admin.css";
 export default function Admin() {
   const [pendingVendors, setPendingVendors] = useState([]);
   const [loading, setLoading] = useState(true);
