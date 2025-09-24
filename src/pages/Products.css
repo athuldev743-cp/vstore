@@ -21,15 +21,8 @@ body {
 .product-collapsed {
   display: flex;
   align-items: center;
-  gap: 16px; /* space between image and title */
-  padding: 16px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.product-collapsed:hover {
-  background-color: #f9fafb;
-  border-radius: 8px;
+  gap: 12px;
+  padding: 12px;
 }
 
 .product-image {
@@ -41,10 +34,14 @@ body {
 }
 
 .product-title {
-  font-size: 1.25rem; /* 20px */
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #111827;
-  flex: 1;
+  color: #333;
+}
+
+.product-collapsed:hover {
+  background-color: #f9fafb;
+  border-radius: 8px;
 }
 
 /* ------------------------- */

@@ -64,10 +64,11 @@ export default function Products() {
               >
                 {product.image_url && (
                   <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="product-image"
-                  />
+                      src={`${product.image_url}?t=${Date.now()}`}
+                      alt={product.name}
+                      className="w-full h-40 object-cover rounded"
+                    />
+
                 )}
                 <h2 className="product-title">{product.name}</h2>
               </div>
