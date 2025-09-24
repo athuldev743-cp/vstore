@@ -6,7 +6,6 @@ import "./Home.css";
 
 export default function Home({ user, onLogout }) {
   const navigate = useNavigate();
-  const SUPER_ADMIN_EMAIL = "your_email@example.com"; // Replace with your email
 
   const [vendorApproved, setVendorApproved] = useState(false);
   const [vendors, setVendors] = useState([]);
@@ -41,10 +40,12 @@ export default function Home({ user, onLogout }) {
         <div className="header-buttons">
           {!user && <button onClick={() => navigate("/auth")}>Sign Up / Login</button>}
 
+          {/* Customer applying for vendor */}
           {user?.role === "customer" && !vendorApproved && (
             <button onClick={() => navigate("/apply-vendor")}>Apply as Vendor</button>
           )}
 
+          {/* Vendor adding products */}
           {user?.role === "vendor" && vendorApproved && (
             <button
               onClick={() =>
@@ -55,10 +56,12 @@ export default function Home({ user, onLogout }) {
             </button>
           )}
 
-          {user?.email === SUPER_ADMIN_EMAIL && (
+          {/* Admin button */}
+          {user?.role === "admin" && (
             <button onClick={() => navigate("/admin")}>🛠 Admin</button>
           )}
 
+          {/* Logout */}
           {user && <button onClick={onLogout}>Logout</button>}
         </div>
       </header>
@@ -71,6 +74,7 @@ export default function Home({ user, onLogout }) {
           </div>
         ) : (
           <>
+            {/* Vendor Add Product Section */}
             {user.role === "vendor" && vendorApproved && (
               <div className="add-product-container">
                 <AddProduct onProductAdded={() => alert("Product added successfully!")} />
