@@ -40,12 +40,12 @@ export default function Home({ user, onLogout }) {
         <div className="header-buttons">
           {!user && <button onClick={() => navigate("/auth")}>Sign Up / Login</button>}
 
-          {/* Customer applying for vendor */}
+          {/* Customer */}
           {user?.role === "customer" && !vendorApproved && (
             <button onClick={() => navigate("/apply-vendor")}>Apply as Vendor</button>
           )}
 
-          {/* Vendor adding products */}
+          {/* Vendor */}
           {user?.role === "vendor" && vendorApproved && (
             <button
               onClick={() =>
@@ -56,7 +56,7 @@ export default function Home({ user, onLogout }) {
             </button>
           )}
 
-          {/* Admin button */}
+          {/* Admin */}
           {user?.role === "admin" && (
             <button onClick={() => navigate("/admin")}>🛠 Admin</button>
           )}
@@ -74,13 +74,14 @@ export default function Home({ user, onLogout }) {
           </div>
         ) : (
           <>
-            {/* Vendor Add Product Section */}
+            {/* Vendor product section */}
             {user.role === "vendor" && vendorApproved && (
               <div className="add-product-container">
                 <AddProduct onProductAdded={() => alert("Product added successfully!")} />
               </div>
             )}
 
+            {/* Customer / Vendor view of stores */}
             <h2>Available Stores</h2>
             {loadingVendors ? (
               <p>Loading stores...</p>

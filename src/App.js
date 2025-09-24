@@ -1,5 +1,6 @@
+// App.jsx
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import ApplyVendor from "./pages/ApplyVendor";
 import Auth from "./pages/Auth";
@@ -10,6 +11,7 @@ import * as StoreAPI from "./api/StoreAPI";
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   // Decode JWT token
   const decodeToken = (token) => {
@@ -54,7 +56,7 @@ export default function App() {
     };
 
     initUser();
-  }, []);
+  }, [navigate]);
 
   // -------------------------
   // After login/signup
@@ -78,51 +80,42 @@ export default function App() {
     }
 
     setUser(currentUser);
+
+    // Navigate after login based on role
+    if (currentUser.role === "admin") navigate("/admin");
+    else navigate("/");
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUser(null);
+    navigate("/auth");
   };
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Home user={user} onLogout={handleLogout} />} />
+    <Routes>
+      <Route path="/" element={<Home user={user} onLogout={handleLogout} />} />
 
-        {/* Apply Vendor - only customers */}
-        <Route
-          path="/apply-vendor"
-          element={user?.role === "customer" ? <ApplyVendor /> : <Navigate to="/" />}
-        />
+      <Route
+        path="/apply-vendor"
+        element={user?.role === "customer" ? <ApplyVendor /> : <Navigate to="/" />}
+      />
 
-        {/* Auth page */}
-        <Route
-          path="/auth"
-          element={
-            user
-              ? user.role === "admin"
-                ? <Navigate to="/admin" />
-                : <Navigate to="/" />
-              : <Auth onLoginSuccess={handleLoginSuccess} />
-          }
-        />
+      <Route
+        path="/auth"
+        element={user ? <Navigate to={user.role === "admin" ? "/admin" : "/"} /> : <Auth onLoginSuccess={handleLoginSuccess} />}
+      />
 
-        {/* Admin Dashboard */}
-        <Route path="/admin" element={user?.role === "admin" ? <Admin /> : <Navigate to="/" />} />
+      <Route path="/admin" element={user?.role === "admin" ? <Admin /> : <Navigate to="/" />} />
 
-        {/* Vendor Add Product */}
-        <Route
-          path="/vendor/products"
-          element={user?.role === "vendor" && user.vendorApproved ? <AddProduct /> : <Navigate to="/" />}
-        />
+      <Route
+        path="/vendor/products"
+        element={user?.role === "vendor" && user.vendorApproved ? <AddProduct /> : <Navigate to="/" />}
+      />
 
-        {/* Vendor Product Listing */}
-        <Route path="/vendor/:vendorId" element={<Products />} />
+      <Route path="/vendor/:vendorId" element={<Products />} />
 
-        {/* Catch all */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Router>
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
