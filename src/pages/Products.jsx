@@ -55,15 +55,21 @@ export default function Products() {
         <div className="space-y-2">
           {products.map((product) => (
             <div key={product.id} className="bg-white shadow rounded-lg">
-              {/* Product heading */}
+              {/* Collapsed heading: 100x100 image + title */}
               <div
-                className="p-4 cursor-pointer flex justify-between items-center"
+                className="product-collapsed cursor-pointer"
                 onClick={() =>
                   setExpanded(expanded === product.id ? null : product.id)
                 }
               >
-                <h2 className="font-semibold text-lg">{product.name}</h2>
-                <span>{expanded === product.id ? "▲" : "▼"}</span>
+                {product.image_url && (
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="product-image"
+                  />
+                )}
+                <h2 className="product-title">{product.name}</h2>
               </div>
 
               {/* Expanded details */}
@@ -81,13 +87,13 @@ export default function Products() {
 function ProductDetails({ product, onOrder }) {
   const [quantity, setQuantity] = useState(0.1);
 
-  const maxQuantity = product.stock > 0 ? product.stock : 0;
+  const maxQuantity = product.stock > 0 ? Math.min(product.stock, 20) : 0; // max 20kg
 
   return (
     <div className="p-4 border-t border-gray-200 space-y-2">
-      {product.image && (
+      {product.image_url && (
         <img
-          src={product.image}
+          src={product.image_url}
           alt={product.name}
           className="w-full h-40 object-cover rounded"
         />
@@ -112,7 +118,9 @@ function ProductDetails({ product, onOrder }) {
         />
       </div>
 
-      <p className="text-gray-700">Total: ₹{(product.price * quantity).toFixed(2)}</p>
+      <p className="text-gray-700">
+        Total: ₹{(product.price * quantity).toFixed(2)}
+      </p>
 
       <button
         onClick={() => onOrder(product, quantity, setQuantity)}

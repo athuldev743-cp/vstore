@@ -8,6 +8,7 @@ export default function AddProduct({ onProductAdded }) {
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
   const [file, setFile] = useState(null); // product image
+  const [preview, setPreview] = useState(null); // image preview
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,11 +29,26 @@ export default function AddProduct({ onProductAdded }) {
       setPrice("");
       setStock("");
       setFile(null);
+      setPreview(null);
 
       if (onProductAdded) onProductAdded();
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to add product");
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setFile(selectedFile);
+    if (selectedFile) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(selectedFile);
+    } else {
+      setPreview(null);
     }
   };
 
@@ -72,8 +88,17 @@ export default function AddProduct({ onProductAdded }) {
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => setFile(e.target.files[0])}
+          onChange={handleFileChange}
         />
+        {preview && (
+          <div className="image-preview">
+            <img
+              src={preview}
+              alt="Preview"
+              style={{ width: "100px", height: "100px", objectFit: "cover", marginTop: "10px" }}
+            />
+          </div>
+        )}
         <small>Price in ₹ per kg, Stock in kg (decimals allowed)</small>
         <button type="submit">Add Product</button>
       </form>
