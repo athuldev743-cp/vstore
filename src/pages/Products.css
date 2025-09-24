@@ -1,49 +1,22 @@
-/* Products.css */
-
-/* General Page */
+/* General Layout */
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: #f2f6fa;
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  background-color: #f0f4f8;
   margin: 0;
   padding: 0;
 }
 
-/* Container */
 .p-4 {
   padding: 1rem;
 }
 
-/* Form Styling */
-form {
-  background-color: #ffffff;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.max-w-md {
+  max-width: 28rem; /* 448px */
 }
 
-form input,
-form textarea,
-form select {
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 0.5rem;
-  width: 100%;
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-}
-
-form button {
-  background-color: #1d4ed8;
-  color: #ffffff;
-  padding: 0.75rem;
-  border-radius: 8px;
-  width: 100%;
-  font-weight: bold;
-  transition: all 0.2s ease-in-out;
-}
-
-form button:hover {
-  background-color: #2563eb;
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Product Card */
@@ -52,64 +25,175 @@ form button:hover {
 }
 
 .shadow {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .rounded-lg {
-  border-radius: 12px;
+  border-radius: 0.5rem;
 }
 
-.product-collapsed {
-  display: flex;
-  flex-direction: column;
+.rounded {
+  border-radius: 0.25rem;
+}
+
+/* Text Styles */
+.text-2xl {
+  font-size: 1.5rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-blue-700 {
+  color: #1d4ed8;
+}
+
+.text-blue-800 {
+  color: #1e40af;
+}
+
+.text-gray-500 {
+  color: #6b7280;
+}
+
+.text-gray-600 {
+  color: #4b5563;
+}
+
+.text-gray-700 {
+  color: #374151;
+}
+
+.text-lg {
+  font-size: 1.125rem;
+}
+
+/* Form Inputs */
+input[type="text"],
+input[type="number"],
+textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+}
+
+input[type="file"] {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Buttons */
+button {
   cursor: pointer;
+  font-size: 1rem;
 }
 
-.product-title {
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin: 0.5rem;
-  color: #1e3a8a;
+.bg-blue-600 {
+  background-color: #2563eb;
 }
 
-/* Product Details */
-.product-collapsed img {
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+.hover\:bg-blue-700:hover {
+  background-color: #1d4ed8;
 }
 
-.border-t {
-  border-top: 1px solid #e2e8f0;
+.bg-green-600 {
+  background-color: #16a34a;
 }
 
+.hover\:bg-green-700:hover {
+  background-color: #15803d;
+}
+
+.bg-gray-400 {
+  background-color: #9ca3af;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+
+.bg-red-500 {
+  background-color: #ef4444;
+}
+
+.hover\:bg-red-600:hover {
+  background-color: #dc2626;
+}
+
+.text-white {
+  color: #ffffff;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+/* Product Images */
+img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+/* Collapsed Product Header */
+.product-collapsed {
+  padding: 0.5rem;
+}
+
+/* Slider */
 input[type="range"] {
   -webkit-appearance: none;
   width: 100%;
   height: 6px;
-  border-radius: 5px;
-  background: #dbeafe;
+  background: #d1d5db;
+  border-radius: 3px;
   outline: none;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
-  background: #1d4ed8;
+  width: 18px;
+  height: 18px;
+  background: #2563eb;
   cursor: pointer;
   border-radius: 50%;
-  border: 2px solid #ffffff;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+  border: none;
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  background: #1d4ed8;
+  width: 18px;
+  height: 18px;
+  background: #2563eb;
   cursor: pointer;
   border-radius: 50%;
-  border: 2px solid #ffffff;
+  border: none;
 }
 
 /* Popup Overlay */
@@ -119,87 +203,50 @@ input[type="range"]::-moz-range-thumb {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 999;
 }
 
-/* Popup Card */
 .popup-card {
   background-color: #ffffff;
+  max-width: 90%;
+  width: 400px;
   padding: 1.5rem;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .popup-card h2 {
-  color: #1e3a8a;
-  font-size: 1.25rem;
-  margin: 0;
+  margin-bottom: 0.5rem;
 }
 
 .popup-card label {
-  font-size: 0.9rem;
+  display: block;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #334155;
-  margin-top: 0.25rem;
 }
 
 .popup-card input,
 .popup-card textarea {
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 0.5rem;
-  font-size: 1rem;
   width: 100%;
+  padding: 0.5rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
 }
 
 .popup-actions {
   display: flex;
   justify-content: space-between;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 
-.popup-actions button {
-  padding: 0.75rem;
-  border-radius: 8px;
-  border: none;
-  font-weight: bold;
-  width: 48%;
-  transition: all 0.2s ease-in-out;
-}
-
-.popup-actions button:first-child {
-  background-color: #1d4ed8;
-  color: white;
-}
-
-.popup-actions button:first-child:hover {
-  background-color: #2563eb;
-}
-
-.popup-actions .cancel-btn {
-  background-color: #e2e8f0;
-  color: #334155;
-}
-
-.popup-actions .cancel-btn:hover {
-  background-color: #cbd5e1;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
-  .p-4 {
-    padding: 0.75rem;
-  }
-  .product-title {
-    font-size: 1rem;
-  }
+/* Add Product Form */
+.bg-blue-50 {
+  background-color: #eff6ff;
 }
