@@ -9,6 +9,9 @@ export default function Products() {
   const [expanded, setExpanded] = useState(null);
   const [user, setUser] = useState(null);
   const [popupProduct, setPopupProduct] = useState(null);
+  const [popupQuantity, setPopupQuantity] = useState(0.5);
+  const [popupPrice, setPopupPrice] = useState(0);
+
   const [newProductForm, setNewProductForm] = useState({
     name: "",
     description: "",
@@ -101,13 +104,23 @@ export default function Products() {
     }
   };
 
+  const handleQuantityChange = (productId, value, price) => {
+    setPopupQuantity(value);
+    setPopupPrice(price * value);
+  };
+
   return (
-    <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4 text-center text-blue-900">Products</h1>
+    <div className="p-4 max-w-md mx-auto bg-white">
+      <h1 className="text-2xl font-bold mb-4 text-center text-blue-700">
+        Products
+      </h1>
 
       {user?.role === "vendor" && (
-        <form onSubmit={handleAddProduct} className="mb-4">
-          <h2 className="font-bold text-lg text-blue-800 mb-2">Add New Product</h2>
+        <form
+          onSubmit={handleAddProduct}
+          className="bg-blue-50 p-4 mb-4 rounded shadow space-y-2"
+        >
+          <h2 className="font-bold text-lg text-blue-800">Add New Product</h2>
           <input
             type="text"
             name="name"
@@ -115,12 +128,14 @@ export default function Products() {
             value={newProductForm.name}
             onChange={handleNewProductChange}
             required
+            className="w-full p-2 border rounded"
           />
           <textarea
             name="description"
             placeholder="Description"
             value={newProductForm.description}
             onChange={handleNewProductChange}
+            className="w-full p-2 border rounded"
           />
           <input
             type="number"
@@ -128,6 +143,7 @@ export default function Products() {
             placeholder="Price per kg"
             value={newProductForm.price}
             onChange={handleNewProductChange}
+            className="w-full p-2 border rounded"
             min="0"
             step="0.01"
             required
@@ -138,23 +154,34 @@ export default function Products() {
             placeholder="Stock in kg"
             value={newProductForm.stock}
             onChange={handleNewProductChange}
+            className="w-full p-2 border rounded"
             min="0"
             step="0.1"
             required
           />
-          <input type="file" name="file" onChange={handleNewProductChange} />
-          <button type="submit">Add Product</button>
+          <input
+            type="file"
+            name="file"
+            onChange={handleNewProductChange}
+            className="w-full"
+          />
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          >
+            Add Product
+          </button>
         </form>
       )}
 
       {products.length === 0 ? (
-        <p className="text-center text-gray-500">No products available.</p>
+        <p>No products available.</p>
       ) : (
         <div className="space-y-2">
           {products.map((product) => (
-            <div key={product.id} className="bg-white shadow rounded-lg overflow-hidden">
+            <div key={product.id} className="bg-white shadow rounded-lg">
               <div
-                className="product-collapsed"
+                className="product-collapsed cursor-pointer"
                 onClick={() =>
                   setExpanded(expanded === product.id ? null : product.id)
                 }
@@ -163,22 +190,27 @@ export default function Products() {
                   <img
                     src={`${product.image_url}?t=${Date.now()}`}
                     alt={product.name}
-                    className="w-full h-40 object-cover"
+                    className="w-full h-40 object-cover rounded"
                   />
                 )}
-                <h2 className="product-title">{product.name}</h2>
+                <h2 className="product-title text-blue-700 font-bold">
+                  {product.name}
+                </h2>
               </div>
 
               {expanded === product.id && (
                 <ProductDetails
                   product={product}
-                  onOpenPopup={(p) =>
-                    setPopupProduct({
-                      ...p,
-                      quantity: p.quantity || 0.1,
-                      totalPrice: (p.price * (p.quantity || 0.1)).toFixed(2),
-                    })
-                  }
+                  onQuantityChange={handleQuantityChange}
+                  onOpenPopup={() => {
+                    setPopupProduct(product);
+                    setPopupQuantity(
+                      Math.min(product.stock, popupQuantity || 0.5)
+                    );
+                    setPopupPrice(
+                      (popupQuantity || 0.5) * product.price
+                    );
+                  }}
                 />
               )}
             </div>
@@ -190,6 +222,8 @@ export default function Products() {
         <OrderPopup
           product={popupProduct}
           user={user}
+          quantity={popupQuantity}
+          totalPrice={popupPrice}
           onClose={() => setPopupProduct(null)}
           onConfirm={handleOrder}
         />
@@ -198,44 +232,54 @@ export default function Products() {
   );
 }
 
-function ProductDetails({ product, onOpenPopup }) {
-  const [quantity, setQuantity] = useState(0.1);
+function ProductDetails({ product, onQuantityChange, onOpenPopup }) {
   const maxQuantity = product.stock > 0 ? Math.min(product.stock, 20) : 0;
+  const [quantity, setQuantity] = useState(0.5);
 
   useEffect(() => {
-    onOpenPopup({ ...product, quantity, totalPrice: (product.price * quantity).toFixed(2) });
-  }, [quantity]);
+    onQuantityChange(product.id, quantity, product.price);
+  }, [quantity, product.price, product.id, onQuantityChange]);
 
   return (
     <div className="p-4 border-t border-gray-200 space-y-2">
       {product.image_url && (
-        <img src={product.image_url} alt={product.name} className="w-full h-40 object-cover rounded" />
+        <img
+          src={product.image_url}
+          alt={product.name}
+          className="w-full h-40 object-cover rounded"
+        />
       )}
       <p className="text-gray-600">{product.description}</p>
       <p className="text-gray-500">Price per kg: ₹{product.price}</p>
       <p className="text-gray-500">Stock: {product.stock} kg</p>
 
       <div>
-        <label className="block text-gray-700">Quantity (kg): {quantity.toFixed(2)}</label>
+        <label className="block text-gray-700">
+          Quantity (kg): {quantity.toFixed(1)}
+        </label>
         <input
           type="range"
-          min="0.1"
-          max={maxQuantity}
+          min="0.5"
+          max={maxQuantity || 0.5}
           step="0.1"
-          value={quantity}
+          value={Number(quantity)}
           onChange={(e) => setQuantity(Number(e.target.value))}
           className="w-full"
           disabled={product.stock <= 0}
         />
       </div>
 
-      <p className="text-gray-700">Total: ₹{(product.price * quantity).toFixed(2)}</p>
+      <p className="text-gray-700">
+        Total: ₹{(product.price * quantity).toFixed(2)}
+      </p>
 
       <button
-        onClick={() => onOpenPopup({ ...product, quantity })}
+        onClick={onOpenPopup}
         disabled={product.stock <= 0}
         className={`mt-2 px-4 py-2 w-full text-white rounded ${
-          product.stock > 0 ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed"
+          product.stock > 0
+            ? "bg-green-600 hover:bg-green-700"
+            : "bg-gray-400 cursor-not-allowed"
         }`}
       >
         🛒 {product.stock > 0 ? "Place Order" : "Out of Stock"}
@@ -244,33 +288,39 @@ function ProductDetails({ product, onOpenPopup }) {
   );
 }
 
-function OrderPopup({ product, user, onClose, onConfirm }) {
+function OrderPopup({ product, user, quantity, totalPrice, onClose, onConfirm }) {
   const [form, setForm] = useState({
     mobile: user.whatsapp || "",
     address: user.address || "",
-    quantity: product.quantity || 0.1,
+    quantity: quantity,
   });
 
   useEffect(() => {
-    setForm((prev) => ({ ...prev, quantity: product.quantity || 0.1 }));
-  }, [product.quantity]);
+    setForm((prev) => ({ ...prev, quantity }));
+  }, [quantity]);
 
   return (
     <div className="popup-overlay">
-      <div className="popup-card">
-        <h2>Order: {product.name}</h2>
-        <p>Price: ₹{product.price} / kg</p>
-        <p>Total: ₹{(form.quantity * product.price).toFixed(2)}</p>
+      <div className="popup-card bg-blue-50 p-4 rounded shadow">
+        <h2 className="text-blue-700 font-bold text-lg">
+          Order: {product.name}
+        </h2>
+        <p className="text-gray-700">Price per kg: ₹{product.price}</p>
+        <p className="text-gray-700 font-bold">
+          Total: ₹{(product.price * form.quantity).toFixed(2)}
+        </p>
 
         <label>
           Quantity (kg):
           <input
             type="number"
-            min="0.1"
+            min="0.5"
             max={Math.min(product.stock, 20)}
             step="0.1"
             value={form.quantity}
-            onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
+            onChange={(e) =>
+              setForm({ ...form, quantity: Number(e.target.value) })
+            }
           />
         </label>
 
@@ -291,9 +341,17 @@ function OrderPopup({ product, user, onClose, onConfirm }) {
           />
         </label>
 
-        <div className="popup-actions">
-          <button onClick={() => onConfirm(product, form.quantity, form)}>Confirm Order</button>
-          <button className="cancel-btn" onClick={onClose}>
+        <div className="popup-actions flex justify-between mt-2">
+          <button
+            onClick={() => onConfirm(product, form.quantity, form)}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Confirm Order
+          </button>
+          <button
+            onClick={onClose}
+            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          >
             Cancel
           </button>
         </div>
