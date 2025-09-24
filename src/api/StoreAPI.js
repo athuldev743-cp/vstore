@@ -32,7 +32,15 @@ const request = async (endpoint, options = {}) => {
 // Auth APIs
 // -------------------------
 export const signup = (data) =>
-  request("/api/users/signup", { method: "POST", body: JSON.stringify(data) });
+  request("/api/users/signup", {
+    method: "POST",
+    body: JSON.stringify({
+      username: data.username,
+      email: data.email,
+      password: data.password,
+    }),
+  });
+
 
 export const login = (data) =>
   request("/api/users/login", { method: "POST", body: JSON.stringify(data) });

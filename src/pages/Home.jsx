@@ -1,41 +1,18 @@
-// src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import AddProduct from "./AddProduct";
 import "./Home.css";
 
-export default function Home({ user, setUser, onLogout }) {
+export default function Home({ user, onLogout }) {
   const navigate = useNavigate();
-  const SUPER_ADMIN_EMAIL = "your_email@example.com"; // replace with your email
+  const SUPER_ADMIN_EMAIL = "your_email@example.com"; // Replace with your email
 
   const [vendorApproved, setVendorApproved] = useState(false);
   const [vendors, setVendors] = useState([]);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const [loadingVendors, setLoadingVendors] = useState(true);
 
-  // -------------------------
-  // Detect logged-in user from token
-  // -------------------------
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setLoadingUser(false);
-      return;
-    }
-
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      setUser({ role: payload.role, email: payload.email, id: payload.sub });
-    } catch (err) {
-      console.error("Failed to parse token:", err);
-    } finally {
-      setLoadingUser(false);
-    }
-  }, [setUser]);
-
-  // -------------------------
-  // Check if vendor is approved
-  // -------------------------
+  // Update vendorApproved if user is vendor
   useEffect(() => {
     if (user?.role === "vendor") {
       StoreAPI.getVendorStatus(user.id)
@@ -46,25 +23,16 @@ export default function Home({ user, setUser, onLogout }) {
     }
   }, [user]);
 
-  // -------------------------
   // Fetch all approved vendors
-  // -------------------------
   useEffect(() => {
-    if (!user) return;
-
+    setLoadingVendors(true);
     StoreAPI.listVendors()
       .then(setVendors)
-      .catch((err) => console.error("Failed to load vendors:", err));
-  }, [user]);
+      .catch((err) => console.error("Failed to load vendors:", err))
+      .finally(() => setLoadingVendors(false));
+  }, []);
 
-  // -------------------------
-  // Handle vendor click
-  // -------------------------
-  const handleVendorClick = (vendorId) => {
-    navigate(`/vendor/${vendorId}`);
-  };
-
-  if (loadingUser) return <p>Loading...</p>;
+  const handleVendorClick = (vendorId) => navigate(`/vendor/${vendorId}`);
 
   return (
     <div className="home-container">
@@ -80,9 +48,7 @@ export default function Home({ user, setUser, onLogout }) {
           {user?.role === "vendor" && vendorApproved && (
             <button
               onClick={() =>
-                document
-                  .querySelector(".add-product-container")
-                  ?.scrollIntoView({ behavior: "smooth" })
+                document.querySelector(".add-product-container")?.scrollIntoView({ behavior: "smooth" })
               }
             >
               ➕ Add Product
@@ -112,16 +78,14 @@ export default function Home({ user, setUser, onLogout }) {
             )}
 
             <h2>Available Stores</h2>
-            {vendors.length === 0 ? (
+            {loadingVendors ? (
+              <p>Loading stores...</p>
+            ) : vendors.length === 0 ? (
               <p>No stores available.</p>
             ) : (
               <ul className="vendor-list">
                 {vendors.map((v) => (
-                  <li
-                    key={v.id}
-                    className="vendor-card"
-                    onClick={() => handleVendorClick(v.id)}
-                  >
+                  <li key={v.id} className="vendor-card" onClick={() => handleVendorClick(v.id)}>
                     <strong>{v.shop_name || "Unnamed Store"}</strong>
                   </li>
                 ))}
