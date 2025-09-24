@@ -1,4 +1,3 @@
-// Products.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
@@ -7,9 +6,16 @@ import "./Products.css";
 export default function Products() {
   const { vendorId } = useParams();
   const [products, setProducts] = useState([]);
-  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [expanded, setExpanded] = useState(null);
   const [user, setUser] = useState(null);
   const [popupProduct, setPopupProduct] = useState(null);
+  const [newProductForm, setNewProductForm] = useState({
+    name: "",
+    description: "",
+    price: 0,
+    stock: 0,
+    file: null,
+  });
 
   useEffect(() => {
     async function fetchProducts() {
@@ -37,6 +43,7 @@ export default function Products() {
   const handleOrder = async (product, quantity, form) => {
     try {
       if (quantity < 0.1) return;
+
       const res = await StoreAPI.placeOrder({
         product_id: product.id,
         quantity,
@@ -59,38 +66,138 @@ export default function Products() {
     }
   };
 
-  const selectedProduct = products.find((p) => p.id === selectedProductId);
+  const handleNewProductChange = (e) => {
+    const { name, value, files } = e.target;
+    setNewProductForm((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  };
+
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData();
+      formData.append("name", newProductForm.name);
+      formData.append("description", newProductForm.description);
+      formData.append("price", newProductForm.price);
+      formData.append("stock", newProductForm.stock);
+      if (newProductForm.file) formData.append("file", newProductForm.file);
+
+      const addedProduct = await StoreAPI.addProduct(formData);
+
+      setProducts((prev) => [addedProduct, ...prev]); // Add to top of list
+      setNewProductForm({
+        name: "",
+        description: "",
+        price: 0,
+        stock: 0,
+        file: null,
+      });
+      alert("Product added successfully!");
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to add product");
+    }
+  };
 
   return (
-    <div className="products-container flex flex-col md:flex-row max-w-md mx-auto p-4">
-      {/* Titles List */}
-      <div className="titles-list w-full md:w-1/3 border-r md:border-r-gray-300">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className={`product-title-item p-2 cursor-pointer border-b ${
-              selectedProductId === product.id ? "bg-gray-200 font-bold" : ""
-            }`}
-            onClick={() => setSelectedProductId(product.id)}
-          >
-            {product.name}
-          </div>
-        ))}
-      </div>
+    <div className="p-4 max-w-md mx-auto">
+      <h1 className="text-2xl font-bold mb-4 text-center">Products</h1>
 
-      {/* Product Details */}
-      <div className="details-section w-full md:w-2/3 mt-4 md:mt-0 md:pl-4">
-        {selectedProduct ? (
-          <ProductDetails
-            product={selectedProduct}
-            onOpenPopup={() => setPopupProduct(selectedProduct)}
+      {/* Vendor Add Product Form */}
+      {user?.role === "vendor" && (
+        <form
+          onSubmit={handleAddProduct}
+          className="bg-gray-100 p-4 mb-4 rounded shadow space-y-2"
+        >
+          <h2 className="font-bold text-lg">Add New Product</h2>
+          <input
+            type="text"
+            name="name"
+            placeholder="Product Name"
+            value={newProductForm.name}
+            onChange={handleNewProductChange}
+            required
+            className="w-full p-2 border rounded"
           />
-        ) : (
-          <p>Select a product to see details</p>
-        )}
-      </div>
+          <textarea
+            name="description"
+            placeholder="Description"
+            value={newProductForm.description}
+            onChange={handleNewProductChange}
+            className="w-full p-2 border rounded"
+          />
+          <input
+            type="number"
+            name="price"
+            placeholder="Price per kg"
+            value={newProductForm.price}
+            onChange={handleNewProductChange}
+            className="w-full p-2 border rounded"
+            min="0"
+            step="0.01"
+            required
+          />
+          <input
+            type="number"
+            name="stock"
+            placeholder="Stock in kg"
+            value={newProductForm.stock}
+            onChange={handleNewProductChange}
+            className="w-full p-2 border rounded"
+            min="0"
+            step="0.1"
+            required
+          />
+          <input
+            type="file"
+            name="file"
+            onChange={handleNewProductChange}
+            className="w-full"
+          />
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          >
+            Add Product
+          </button>
+        </form>
+      )}
 
-      {/* Order Popup */}
+      {products.length === 0 ? (
+        <p>No products available.</p>
+      ) : (
+        <div className="space-y-2">
+          {products.map((product) => (
+            <div key={product.id} className="bg-white shadow rounded-lg">
+              <div
+                className="product-collapsed cursor-pointer"
+                onClick={() =>
+                  setExpanded(expanded === product.id ? null : product.id)
+                }
+              >
+                {product.image_url && (
+                  <img
+                    src={`${product.image_url}?t=${Date.now()}`}
+                    alt={product.name}
+                    className="w-full h-40 object-cover rounded"
+                  />
+                )}
+                <h2 className="product-title">{product.name}</h2>
+              </div>
+
+              {expanded === product.id && (
+                <ProductDetails
+                  product={product}
+                  onOpenPopup={() => setPopupProduct(product)}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {popupProduct && user && (
         <OrderPopup
           product={popupProduct}
@@ -104,8 +211,11 @@ export default function Products() {
 }
 
 function ProductDetails({ product, onOpenPopup }) {
+  const [quantity, setQuantity] = useState(0.1);
+  const maxQuantity = product.stock > 0 ? Math.min(product.stock, 20) : 0;
+
   return (
-    <div className="product-details p-2 border rounded space-y-2">
+    <div className="p-4 border-t border-gray-200 space-y-2">
       {product.image_url && (
         <img
           src={product.image_url}
@@ -116,6 +226,26 @@ function ProductDetails({ product, onOpenPopup }) {
       <p className="text-gray-600">{product.description}</p>
       <p className="text-gray-500">Price per kg: ₹{product.price}</p>
       <p className="text-gray-500">Stock: {product.stock} kg</p>
+
+      <div>
+        <label className="block text-gray-700">
+          Quantity (kg): {quantity.toFixed(2)}
+        </label>
+        <input
+          type="range"
+          min="0.1"
+          max={maxQuantity}
+          step="0.1"
+          value={quantity}
+          onChange={(e) => setQuantity(Number(e.target.value))}
+          className="w-full"
+          disabled={product.stock <= 0}
+        />
+      </div>
+
+      <p className="text-gray-700">
+        Total: ₹{(product.price * quantity).toFixed(2)}
+      </p>
 
       <button
         onClick={onOpenPopup}
@@ -140,9 +270,9 @@ function OrderPopup({ product, user, onClose, onConfirm }) {
   });
 
   return (
-    <div className="popup-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="popup-card bg-white p-4 rounded shadow w-11/12 max-w-sm space-y-2">
-        <h2 className="text-lg font-bold">Order: {product.name}</h2>
+    <div className="popup-overlay">
+      <div className="popup-card">
+        <h2>Order: {product.name}</h2>
         <p>Price: ₹{product.price} / kg</p>
 
         <label>
@@ -176,17 +306,11 @@ function OrderPopup({ product, user, onClose, onConfirm }) {
           />
         </label>
 
-        <div className="popup-actions flex justify-between mt-2">
-          <button
-            className="bg-green-600 text-white px-3 py-1 rounded"
-            onClick={() => onConfirm(product, form.quantity, form)}
-          >
+        <div className="popup-actions">
+          <button onClick={() => onConfirm(product, form.quantity, form)}>
             Confirm Order
           </button>
-          <button
-            className="bg-gray-400 px-3 py-1 rounded"
-            onClick={onClose}
-          >
+          <button className="cancel-btn" onClick={onClose}>
             Cancel
           </button>
         </div>
