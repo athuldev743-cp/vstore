@@ -1,4 +1,3 @@
-// src/pages/Products.jsx
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
@@ -8,6 +7,8 @@ export default function Products() {
   const { vendorId } = useParams();
   const [products, setProducts] = useState([]);
   const [expanded, setExpanded] = useState(null);
+  const [user, setUser] = useState(null);
+  const [popupProduct, setPopupProduct] = useState(null);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -18,16 +19,29 @@ export default function Products() {
         console.error("Failed to fetch products:", err);
       }
     }
+
+    async function fetchUser() {
+      try {
+        const res = await StoreAPI.getCurrentUser(); // Fetch logged-in user info
+        setUser(res);
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      }
+    }
+
     fetchProducts();
+    fetchUser();
   }, [vendorId]);
 
-  const handleOrder = async (product, quantity, setQuantity) => {
+  const handleOrder = async (product, quantity, form) => {
     try {
       if (quantity < 0.1) return;
 
       const res = await StoreAPI.placeOrder({
         product_id: product.id,
         quantity,
+        mobile: form.mobile,
+        address: form.address,
       });
 
       alert(`Order placed! Remaining stock: ${res.remaining_stock} kg`);
@@ -38,7 +52,7 @@ export default function Products() {
         )
       );
 
-      setQuantity(0.1);
+      setPopupProduct(null); // close popup
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to place order");
@@ -55,7 +69,6 @@ export default function Products() {
         <div className="space-y-2">
           {products.map((product) => (
             <div key={product.id} className="bg-white shadow rounded-lg">
-              {/* Collapsed heading: 100x100 image + title */}
               <div
                 className="product-collapsed cursor-pointer"
                 onClick={() =>
@@ -64,31 +77,40 @@ export default function Products() {
               >
                 {product.image_url && (
                   <img
-                      src={`${product.image_url}?t=${Date.now()}`}
-                      alt={product.name}
-                      className="w-full h-40 object-cover rounded"
-                    />
-
+                    src={`${product.image_url}?t=${Date.now()}`}
+                    alt={product.name}
+                    className="w-full h-40 object-cover rounded"
+                  />
                 )}
                 <h2 className="product-title">{product.name}</h2>
               </div>
 
-              {/* Expanded details */}
               {expanded === product.id && (
-                <ProductDetails product={product} onOrder={handleOrder} />
+                <ProductDetails
+                  product={product}
+                  onOpenPopup={() => setPopupProduct(product)}
+                />
               )}
             </div>
           ))}
         </div>
       )}
+
+      {popupProduct && user && (
+        <OrderPopup
+          product={popupProduct}
+          user={user}
+          onClose={() => setPopupProduct(null)}
+          onConfirm={handleOrder}
+        />
+      )}
     </div>
   );
 }
 
-function ProductDetails({ product, onOrder }) {
+function ProductDetails({ product, onOpenPopup }) {
   const [quantity, setQuantity] = useState(0.1);
-
-  const maxQuantity = product.stock > 0 ? Math.min(product.stock, 20) : 0; // max 20kg
+  const maxQuantity = product.stock > 0 ? Math.min(product.stock, 20) : 0;
 
   return (
     <div className="p-4 border-t border-gray-200 space-y-2">
@@ -124,7 +146,7 @@ function ProductDetails({ product, onOrder }) {
       </p>
 
       <button
-        onClick={() => onOrder(product, quantity, setQuantity)}
+        onClick={onOpenPopup}
         disabled={product.stock <= 0}
         className={`mt-2 px-4 py-2 w-full text-white rounded ${
           product.stock > 0
@@ -134,6 +156,63 @@ function ProductDetails({ product, onOrder }) {
       >
         🛒 {product.stock > 0 ? "Place Order" : "Out of Stock"}
       </button>
+    </div>
+  );
+}
+
+function OrderPopup({ product, user, onClose, onConfirm }) {
+  const [form, setForm] = useState({
+    mobile: user.whatsapp || "",
+    address: user.address || "",
+    quantity: 0.1,
+  });
+
+  return (
+    <div className="popup-overlay">
+      <div className="popup-card">
+        <h2>Order: {product.name}</h2>
+        <p>Price: ₹{product.price} / kg</p>
+
+        <label>
+          Quantity (kg):
+          <input
+            type="number"
+            min="0.1"
+            max={Math.min(product.stock, 20)}
+            step="0.1"
+            value={form.quantity}
+            onChange={(e) =>
+              setForm({ ...form, quantity: Number(e.target.value) })
+            }
+          />
+        </label>
+
+        <label>
+          Mobile:
+          <input
+            type="text"
+            value={form.mobile}
+            onChange={(e) => setForm({ ...form, mobile: e.target.value })}
+          />
+        </label>
+
+        <label>
+          Address:
+          <textarea
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+          />
+        </label>
+
+        <div className="popup-actions">
+          <button onClick={() => onConfirm(product, form.quantity, form)}>
+            Confirm Order
+          </button>
+          <button className="cancel-btn" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

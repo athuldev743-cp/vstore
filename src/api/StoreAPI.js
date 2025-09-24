@@ -47,10 +47,12 @@ export const login = (data) =>
 // -------------------------
 // Store APIs
 // -------------------------
+export const getCurrentUser = () => request("/api/users/me");
 export const listProducts = () => request("/api/store/products");
 export const getOrders = () => request("/api/store/orders");
 export const placeOrder = (data) =>
   request("/api/store/orders", { method: "POST", body: JSON.stringify(data) });
+
 
 
 // -------------------------
