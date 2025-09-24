@@ -1,3 +1,4 @@
+// src/pages/Home.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
@@ -12,38 +13,53 @@ export default function Home({ user, setUser, onLogout }) {
   const [vendors, setVendors] = useState([]);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // Fetch current user from token (detect after login/signup)
+  // -------------------------
+  // Detect logged-in user from token
+  // -------------------------
   useEffect(() => {
-    const fetchUser = async () => {
-      setLoadingUser(true);
-      try {
-        const currentUser = await StoreAPI.getCurrentUser();
-        setUser(currentUser); // set in parent state
-        // Check if user is vendor and approved
-        if (currentUser.role === "vendor" || currentUser.role === "customer") {
-          const res = await StoreAPI.getVendorStatus(currentUser._id);
-          setVendorApproved(res.status === "approved");
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingUser(false);
-      }
-    };
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoadingUser(false);
+      return;
+    }
 
-    if (!user) fetchUser();
-    else setLoadingUser(false);
-  }, [user]);
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      setUser({ role: payload.role, email: payload.email, id: payload.sub });
+    } catch (err) {
+      console.error("Failed to parse token:", err);
+    } finally {
+      setLoadingUser(false);
+    }
+  }, [setUser]);
 
-  // Fetch all approved vendors
+  // -------------------------
+  // Check if vendor is approved
+  // -------------------------
   useEffect(() => {
-    if (user) {
-      StoreAPI.listVendors()
-        .then(setVendors)
-        .catch((err) => console.error("Failed to load vendors:", err));
+    if (user?.role === "vendor") {
+      StoreAPI.getVendorStatus(user.id)
+        .then((res) => setVendorApproved(res.status === "approved"))
+        .catch(() => setVendorApproved(false));
+    } else {
+      setVendorApproved(false);
     }
   }, [user]);
 
+  // -------------------------
+  // Fetch all approved vendors
+  // -------------------------
+  useEffect(() => {
+    if (!user) return;
+
+    StoreAPI.listVendors()
+      .then(setVendors)
+      .catch((err) => console.error("Failed to load vendors:", err));
+  }, [user]);
+
+  // -------------------------
+  // Handle vendor click
+  // -------------------------
   const handleVendorClick = (vendorId) => {
     navigate(`/vendor/${vendorId}`);
   };
@@ -90,7 +106,7 @@ export default function Home({ user, setUser, onLogout }) {
         ) : (
           <>
             {user.role === "vendor" && vendorApproved && (
-              <div>
+              <div className="add-product-container">
                 <AddProduct onProductAdded={() => alert("Product added successfully!")} />
               </div>
             )}

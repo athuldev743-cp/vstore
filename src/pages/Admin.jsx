@@ -1,44 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
-import "./Admin.css";
 
-export default function Admin({ user }) {
-  const navigate = useNavigate();
+export default function Admin() {
   const [pendingVendors, setPendingVendors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  // Redirect non-admin users
-  useEffect(() => {
-    if (!user || user.role !== "admin") {
-      navigate("/"); // redirect to home if not admin
-    }
-  }, [user]);
-
-  const fetchPending = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const data = await StoreAPI.listPendingVendors();
-      setPendingVendors(data);
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to load pending vendors.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
+    const fetchPending = async () => {
+      try {
+        const data = await StoreAPI.listPendingVendors();
+        setPendingVendors(data);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load pending vendors.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchPending();
-  }, []);
+  }, []); // ✅ no warnings
 
   const approve = async (id) => {
     try {
       await StoreAPI.approveVendor(id);
       alert("Vendor approved!");
-      fetchPending();
+      setPendingVendors((prev) => prev.filter((v) => v.id !== id));
     } catch (err) {
       alert(err.message || "Failed to approve.");
     }
@@ -48,7 +35,7 @@ export default function Admin({ user }) {
     try {
       await StoreAPI.rejectVendor(id);
       alert("Vendor rejected!");
-      fetchPending();
+      setPendingVendors((prev) => prev.filter((v) => v.id !== id));
     } catch (err) {
       alert(err.message || "Failed to reject.");
     }
@@ -59,8 +46,6 @@ export default function Admin({ user }) {
       <h2>Pending Vendor Applications</h2>
       {loading ? (
         <p>Loading...</p>
-      ) : error ? (
-        <p style={{ color: "red" }}>{error}</p>
       ) : pendingVendors.length === 0 ? (
         <p>No pending applications.</p>
       ) : (

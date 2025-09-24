@@ -11,34 +11,25 @@ import * as StoreAPI from "./api/StoreAPI";
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const [vendorApproved, setVendorApproved] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  // -------------------------
-  // Fetch current user & vendor status
-  // -------------------------
+  // Fetch current user on app load
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+      if (!token) return;
 
       try {
         const currentUser = await StoreAPI.getCurrentUser();
-        setUser(currentUser);
 
         if (currentUser.role === "vendor") {
           const status = await StoreAPI.getVendorStatus(currentUser.id);
-          setVendorApproved(status.status === "approved");
+          currentUser.vendorApproved = status.status === "approved";
         }
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
+
+        setUser(currentUser);
+      } catch {
         localStorage.removeItem("token");
         setUser(null);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -46,26 +37,26 @@ export default function App() {
   }, []);
 
   const handleLoginSuccess = async () => {
+    // After login/signup, refetch user data
     try {
       const currentUser = await StoreAPI.getCurrentUser();
-      setUser(currentUser);
 
       if (currentUser.role === "vendor") {
         const status = await StoreAPI.getVendorStatus(currentUser.id);
-        setVendorApproved(status.status === "approved");
+        currentUser.vendorApproved = status.status === "approved";
       }
-    } catch (err) {
-      console.error("Login fetch user failed:", err);
+
+      setUser(currentUser);
+    } catch {
+      localStorage.removeItem("token");
+      setUser(null);
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setUser(null);
-    setVendorApproved(false);
   };
-
-  if (loading) return <p>Loading...</p>;
 
   return (
     <Router>
@@ -73,13 +64,7 @@ export default function App() {
         {/* Home */}
         <Route
           path="/"
-          element={
-            <Home
-              user={user}
-              vendorApproved={vendorApproved}
-              onLogout={handleLogout}
-            />
-          }
+          element={<Home user={user} onLogout={handleLogout} />}
         />
 
         {/* Apply Vendor */}
@@ -103,7 +88,7 @@ export default function App() {
         {/* Vendor Add Product */}
         <Route
           path="/vendor/products"
-          element={user?.role === "vendor" && vendorApproved ? <AddProduct /> : <Navigate to="/" />}
+          element={user?.role === "vendor" && user.vendorApproved ? <AddProduct /> : <Navigate to="/" />}
         />
 
         {/* Vendor Products */}
