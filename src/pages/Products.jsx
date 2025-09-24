@@ -9,6 +9,13 @@ export default function Products() {
   const [expanded, setExpanded] = useState(null);
   const [user, setUser] = useState(null);
   const [popupProduct, setPopupProduct] = useState(null);
+  const [newProductForm, setNewProductForm] = useState({
+    name: "",
+    description: "",
+    price: 0,
+    stock: 0,
+    file: null,
+  });
 
   useEffect(() => {
     async function fetchProducts() {
@@ -22,7 +29,7 @@ export default function Products() {
 
     async function fetchUser() {
       try {
-        const res = await StoreAPI.getCurrentUser(); // Fetch logged-in user info
+        const res = await StoreAPI.getCurrentUser();
         setUser(res);
       } catch (err) {
         console.error("Failed to fetch user:", err);
@@ -52,16 +59,111 @@ export default function Products() {
         )
       );
 
-      setPopupProduct(null); // close popup
+      setPopupProduct(null);
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to place order");
     }
   };
 
+  const handleNewProductChange = (e) => {
+    const { name, value, files } = e.target;
+    setNewProductForm((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  };
+
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData();
+      formData.append("name", newProductForm.name);
+      formData.append("description", newProductForm.description);
+      formData.append("price", newProductForm.price);
+      formData.append("stock", newProductForm.stock);
+      if (newProductForm.file) formData.append("file", newProductForm.file);
+
+      const addedProduct = await StoreAPI.addProduct(formData);
+
+      setProducts((prev) => [addedProduct, ...prev]); // Add to top of list
+      setNewProductForm({
+        name: "",
+        description: "",
+        price: 0,
+        stock: 0,
+        file: null,
+      });
+      alert("Product added successfully!");
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to add product");
+    }
+  };
+
   return (
     <div className="p-4 max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4 text-center">Products</h1>
+
+      {/* Vendor Add Product Form */}
+      {user?.role === "vendor" && (
+        <form
+          onSubmit={handleAddProduct}
+          className="bg-gray-100 p-4 mb-4 rounded shadow space-y-2"
+        >
+          <h2 className="font-bold text-lg">Add New Product</h2>
+          <input
+            type="text"
+            name="name"
+            placeholder="Product Name"
+            value={newProductForm.name}
+            onChange={handleNewProductChange}
+            required
+            className="w-full p-2 border rounded"
+          />
+          <textarea
+            name="description"
+            placeholder="Description"
+            value={newProductForm.description}
+            onChange={handleNewProductChange}
+            className="w-full p-2 border rounded"
+          />
+          <input
+            type="number"
+            name="price"
+            placeholder="Price per kg"
+            value={newProductForm.price}
+            onChange={handleNewProductChange}
+            className="w-full p-2 border rounded"
+            min="0"
+            step="0.01"
+            required
+          />
+          <input
+            type="number"
+            name="stock"
+            placeholder="Stock in kg"
+            value={newProductForm.stock}
+            onChange={handleNewProductChange}
+            className="w-full p-2 border rounded"
+            min="0"
+            step="0.1"
+            required
+          />
+          <input
+            type="file"
+            name="file"
+            onChange={handleNewProductChange}
+            className="w-full"
+          />
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          >
+            Add Product
+          </button>
+        </form>
+      )}
 
       {products.length === 0 ? (
         <p>No products available.</p>
