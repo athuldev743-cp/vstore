@@ -49,8 +49,9 @@ export const login = (data) =>
 // -------------------------
 export const listProducts = () => request("/api/store/products");
 export const getOrders = () => request("/api/store/orders");
-export const placeOrder = (product_id, quantity) =>
-  request("/api/store/orders", { method: "POST", body: JSON.stringify({ product_id, quantity }) });
+export const placeOrder = (data) =>
+  request("/api/store/orders", { method: "POST", body: JSON.stringify(data) });
+
 
 // -------------------------
 // -------------------------
