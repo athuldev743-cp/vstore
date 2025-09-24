@@ -6,17 +6,34 @@ import "./Home.css";
 
 export default function Home({ user, vendorApproved, onLogout }) {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
   const SUPER_ADMIN_EMAIL = "your_email@example.com"; // replace with your email
 
-  // Load products for customers
-  useEffect(() => {
-    if (user?.role === "customer") {
-      StoreAPI.listProducts()
-        .then(setProducts)
-        .catch((err) => console.error("Failed to load products:", err));
-    }
-  }, [user]);
+  function VendorList() {
+    const [vendors, setVendors] = useState([]);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+      StoreAPI.listVendors()
+        .then(setVendors)
+        .catch((err) => console.error("Failed to load vendors:", err));
+    }, []);
+
+    if (vendors.length === 0) return <p>No stores available.</p>;
+
+    return (
+      <ul className="vendor-list">
+        {vendors.map((v) => (
+          <li
+            key={v.id}
+            className="vendor-card"
+            onClick={() => navigate(`/vendor/${v.id}`)}
+          >
+            <strong>{v.store_name || "Unnamed Store"}</strong>
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <div className="home-container">
@@ -55,30 +72,8 @@ export default function Home({ user, vendorApproved, onLogout }) {
           </div>
         ) : user.role === "customer" ? (
           <div>
-            <h2>Products</h2>
-            {products.length === 0 ? (
-              <p>No products available.</p>
-            ) : (
-              <ul className="product-list">
-                {products.map((p) => (
-                  <li key={p.id} className="product-card">
-                    <strong>{p.name}</strong>
-                    <p>Price: {p.price}</p>
-                    <button
-                      onClick={() =>
-                        StoreAPI.placeOrder(p.id, 1)
-                          .then(() => alert("Order placed!"))
-                          .catch((err) =>
-                            alert(err.message || "Failed to place order")
-                          )
-                      }
-                    >
-                      Order
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <h2>Stores</h2>
+            <VendorList />
           </div>
         ) : (
           <div className="welcome">

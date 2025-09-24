@@ -6,6 +6,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AddProduct from "./pages/AddProduct";
 import * as StoreAPI from "./api/StoreAPI";
+import Products from "./pages/Products";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -78,6 +79,10 @@ export default function App() {
           }
         />
       </Routes>
-    </Router>
+          <Route
+             path="/vendor/:vendorId"
+             element={<Products />}
+/>
+        </Router>
   );
 }

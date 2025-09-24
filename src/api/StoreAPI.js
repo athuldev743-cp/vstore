@@ -92,5 +92,8 @@ export const rejectVendor = (vendor_id) =>
   request(`/api/store/vendors/${vendor_id}/reject`, { method: "POST" });
 
 // ✅ New function: Check vendor status by user ID
+export const listVendors = () => request("/api/store/vendors");
 export const getVendorStatus = (userId) =>
   request(`/api/store/vendors/status/${userId}`);
+export const getVendorProducts = (vendorId) =>
+  request(`/api/store/vendors/${vendorId}/products`);
