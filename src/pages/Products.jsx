@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
+import "./Products.css";
 
 export default function Products() {
   const { vendorId } = useParams(); // from route /vendor/:vendorId
