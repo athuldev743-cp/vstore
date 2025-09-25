@@ -1,7 +1,6 @@
 /* ---------------------- */
 /* General Home Styles    */
 /* ---------------------- */
-
 .home-container {
   font-family: Arial, sans-serif;
   background-color: #f0f4f8;
@@ -11,7 +10,6 @@
 /* ---------------------- */
 /* Header Styles          */
 /* ---------------------- */
-
 .home-header {
   display: flex;
   justify-content: space-between;
@@ -54,7 +52,6 @@
 /* ---------------------- */
 /* Main Content Styles    */
 /* ---------------------- */
-
 .home-content {
   padding: 16px;
 }
@@ -65,9 +62,8 @@
 }
 
 /* ---------------------- */
-/* Product List / Cards   */
+/* Product List / Vendor List */
 /* ---------------------- */
-
 .product-list,
 .vendor-list {
   list-style: none;
@@ -82,6 +78,13 @@
   border-radius: 12px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover,
+.vendor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
 .product-card button {
@@ -101,7 +104,6 @@
 /* ---------------------- */
 /* Add Product Form       */
 /* ---------------------- */
-
 .add-product-container {
   background-color: white;
   padding: 16px;
@@ -131,6 +133,10 @@
   font-size: 14px;
 }
 
+.add-product-container textarea {
+  resize: vertical;
+}
+
 .add-product-container button {
   background-color: #007bff;
   color: white;
@@ -153,7 +159,6 @@
 /* ---------------------- */
 /* Responsive Styles      */
 /* ---------------------- */
-
 @media (max-width: 600px) {
   .home-header {
     flex-direction: column;
@@ -168,6 +173,7 @@
   .header-buttons button {
     flex: 1 1 auto;
     margin-bottom: 8px;
+    font-size: 13px;
   }
 
   .add-product-container {
@@ -184,4 +190,13 @@
     width: 80px;
     height: 80px;
   }
+}
+
+/* ---------------------- */
+/* Vendor Card Hover Fix  */
+/* ---------------------- */
+.vendor-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }

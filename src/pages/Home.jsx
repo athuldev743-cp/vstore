@@ -32,10 +32,9 @@ export default function Home({ user, onLogout }) {
       .finally(() => setLoadingVendors(false));
   }, []);
 
- const handleVendorClick = (vendorId) => {
-  // Only navigate, do NOT toggle showAddProduct
-  navigate(`/vendor/${vendorId}`);
-};
+  const handleVendorClick = (vendorId) => {
+    navigate(`/vendor/${vendorId}`); // only navigate, do NOT show add product
+  };
 
   return (
     <div className="home-container">
@@ -49,20 +48,15 @@ export default function Home({ user, onLogout }) {
             <button onClick={() => navigate("/apply-vendor")}>Apply as Vendor</button>
           )}
 
-          {/* Vendor */}
-           {/* Vendor */}
-         {user?.role === "vendor" && vendorApproved && (
-          <button onClick={() => setShowAddProduct(!showAddProduct)}>
-         {showAddProduct ? "➖ Close Add Product" : "➕ Add Product"}
-          </button>
-            )}
-
-
+          {/* Vendor Add Product button (always visible if approved) */}
+          {user?.role === "vendor" && vendorApproved && (
+            <button onClick={() => setShowAddProduct(!showAddProduct)}>
+              {showAddProduct ? "➖ Close Add Product" : "➕ Add Product"}
+            </button>
+          )}
 
           {/* Admin */}
-          {user?.role === "admin" && (
-            <button onClick={() => navigate("/admin")}>🛠 Admin</button>
-          )}
+          {user?.role === "admin" && <button onClick={() => navigate("/admin")}>🛠 Admin</button>}
 
           {/* Logout */}
           {user && <button onClick={onLogout}>Logout</button>}
@@ -77,7 +71,7 @@ export default function Home({ user, onLogout }) {
           </div>
         ) : (
           <>
-            {/* Vendor Add Product Section */}
+            {/* Vendor Add Product Form */}
             {showAddProduct && (
               <div className="add-product-container">
                 <AddProduct onProductAdded={() => alert("Product added successfully!")} />

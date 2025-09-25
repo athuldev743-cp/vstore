@@ -1,17 +1,18 @@
-/* General Layout */
+/* ---------------------- */
+/* General Page Styles    */
+/* ---------------------- */
 body {
-  font-family: 'Helvetica', 'Arial', sans-serif;
-  background-color: #f0f4f8;
   margin: 0;
-  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f0f4f8;
 }
 
-.p-4 {
-  padding: 1rem;
+h1, h2 {
+  margin: 0;
 }
 
 .max-w-md {
-  max-width: 28rem; /* 448px */
+  max-width: 500px;
 }
 
 .mx-auto {
@@ -19,234 +20,228 @@ body {
   margin-right: auto;
 }
 
-/* Product Card */
+.p-4 {
+  padding: 16px;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
 .bg-white {
-  background-color: #ffffff;
+  background-color: white;
 }
 
-.shadow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.rounded-lg {
-  border-radius: 0.5rem;
+.bg-blue-50 {
+  background-color: #ebf5ff;
 }
 
 .rounded {
-  border-radius: 0.25rem;
+  border-radius: 12px;
 }
 
-/* Text Styles */
-.text-2xl {
-  font-size: 1.5rem;
+.shadow {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.font-bold {
-  font-weight: 700;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-blue-700 {
-  color: #1d4ed8;
-}
-
-.text-blue-800 {
-  color: #1e40af;
-}
-
-.text-gray-500 {
-  color: #6b7280;
-}
-
-.text-gray-600 {
-  color: #4b5563;
-}
-
-.text-gray-700 {
-  color: #374151;
-}
-
-.text-lg {
-  font-size: 1.125rem;
-}
-
-/* Form Inputs */
-input[type="text"],
-input[type="number"],
-textarea {
+/* ---------------------- */
+/* Add Product Form       */
+/* ---------------------- */
+form input,
+form textarea,
+form button {
   width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.25rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.25rem;
-  font-size: 1rem;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
 }
 
-input[type="file"] {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-/* Buttons */
-button {
+form button {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
   cursor: pointer;
-  font-size: 1rem;
+  border: none;
 }
 
-.bg-blue-600 {
-  background-color: #2563eb;
+form button:hover {
+  background-color: #0056b3;
 }
 
-.hover\:bg-blue-700:hover {
-  background-color: #1d4ed8;
+/* ---------------------- */
+/* Product Card Styles    */
+/* ---------------------- */
+.product-collapsed {
+  cursor: pointer;
+  position: relative;
 }
 
-.bg-green-600 {
+.product-title {
+  font-size: 18px;
+  font-weight: bold;
+  padding: 8px 0;
+  color: #007bff;
+}
+
+.product-collapsed img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Product Details */
+.product-collapsed + div,
+.product-details {
+  padding: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.product-details p {
+  margin: 4px 0;
+  color: #555;
+}
+
+.product-details input[type="range"] {
+  width: 100%;
+  margin: 6px 0;
+}
+
+.product-details button {
+  margin-top: 8px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+.product-details button.bg-green-600 {
   background-color: #16a34a;
+  color: white;
 }
 
-.hover\:bg-green-700:hover {
+.product-details button.bg-green-600:hover {
   background-color: #15803d;
 }
 
-.bg-gray-400 {
+.product-details button.bg-gray-400 {
   background-color: #9ca3af;
-}
-
-.cursor-not-allowed {
   cursor: not-allowed;
 }
 
-.bg-red-500 {
-  background-color: #ef4444;
-}
-
-.hover\:bg-red-600:hover {
-  background-color: #dc2626;
-}
-
-.text-white {
-  color: #ffffff;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.px-4 {
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
-.py-2 {
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-}
-
-.mt-2 {
-  margin-top: 0.5rem;
-}
-
-/* Product Images */
-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 0.5rem;
-}
-
-/* Collapsed Product Header */
-.product-collapsed {
-  padding: 0.5rem;
-}
-
-/* Slider */
-input[type="range"] {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 6px;
-  background: #d1d5db;
-  border-radius: 3px;
-  outline: none;
-  margin-top: 0.25rem;
-  margin-bottom: 0.5rem;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  background: #2563eb;
-  cursor: pointer;
-  border-radius: 50%;
-  border: none;
-}
-
-input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  background: #2563eb;
-  cursor: pointer;
-  border-radius: 50%;
-  border: none;
-}
-
-/* Popup Overlay */
+/* ---------------------- */
+/* Popup Overlay          */
+/* ---------------------- */
 .popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1000;
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 999;
+  justify-content: center;
+  padding: 12px;
 }
 
 .popup-card {
-  background-color: #ffffff;
-  max-width: 90%;
-  width: 400px;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  background-color: #fefefe;
+  width: 100%;
+  max-width: 400px;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
 .popup-card h2 {
-  margin-bottom: 0.5rem;
+  color: #007bff;
+  margin-bottom: 8px;
 }
 
 .popup-card label {
   display: block;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #333;
 }
 
 .popup-card input,
 .popup-card textarea {
   width: 100%;
-  padding: 0.5rem;
-  margin-top: 0.25rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.25rem;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-top: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
 }
 
 .popup-actions {
   display: flex;
   justify-content: space-between;
-  margin-top: 1rem;
+  margin-top: 12px;
 }
 
-/* Add Product Form */
-.bg-blue-50 {
-  background-color: #eff6ff;
+.popup-actions button {
+  flex: 1 1 48%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.popup-actions button:first-child {
+  margin-right: 4%;
+}
+
+/* Green Confirm Button */
+.popup-actions button.bg-green-600 {
+  background-color: #16a34a;
+  color: white;
+}
+
+.popup-actions button.bg-green-600:hover {
+  background-color: #15803d;
+}
+
+/* Red Cancel Button */
+.popup-actions button.bg-red-500 {
+  background-color: #dc2626;
+  color: white;
+}
+
+.popup-actions button.bg-red-500:hover {
+  background-color: #b91c1c;
+}
+
+/* ---------------------- */
+/* Responsive (Mobile)    */
+/* ---------------------- */
+@media (max-width: 600px) {
+  .product-collapsed img {
+    height: 150px;
+  }
+
+  .popup-card {
+    padding: 12px;
+  }
+
+  .popup-actions button {
+    padding: 8px;
+  }
+
+  form input,
+  form textarea,
+  form button {
+    font-size: 13px;
+    padding: 6px;
+  }
 }
