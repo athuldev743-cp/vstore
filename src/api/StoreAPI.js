@@ -92,8 +92,10 @@ export const addProduct = async (formData) => {
   try {
     const res = await fetch(`${API_BASE}/api/store/products`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
+      headers: {
+        Authorization: `Bearer ${token}`, // only Authorization, no Content-Type
+      },
+      body: formData, // FormData automatically sets multipart/form-data
     });
 
     let data;
@@ -111,6 +113,7 @@ export const addProduct = async (formData) => {
     throw err;
   }
 };
+
 
 // -------------------------
 // Admin Vendor Management
