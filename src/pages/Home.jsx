@@ -32,7 +32,10 @@ export default function Home({ user, onLogout }) {
       .finally(() => setLoadingVendors(false));
   }, []);
 
-  const handleVendorClick = (vendorId) => navigate(`/vendor/${vendorId}`);
+ const handleVendorClick = (vendorId) => {
+  // Only navigate, do NOT toggle showAddProduct
+  navigate(`/vendor/${vendorId}`);
+};
 
   return (
     <div className="home-container">
@@ -47,11 +50,14 @@ export default function Home({ user, onLogout }) {
           )}
 
           {/* Vendor */}
-          {user?.role === "vendor" && vendorApproved && (
-            <button onClick={() => setShowAddProduct(!showAddProduct)}>
-              {showAddProduct ? "➖ Close Add Product" : "➕ Add Product"}
-            </button>
-          )}
+           {/* Vendor */}
+         {user?.role === "vendor" && vendorApproved && (
+          <button onClick={() => setShowAddProduct(!showAddProduct)}>
+         {showAddProduct ? "➖ Close Add Product" : "➕ Add Product"}
+          </button>
+            )}
+
+
 
           {/* Admin */}
           {user?.role === "admin" && (
