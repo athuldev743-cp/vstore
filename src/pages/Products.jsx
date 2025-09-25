@@ -12,14 +12,7 @@ export default function Products() {
   const [popupQuantity, setPopupQuantity] = useState(0.5);
   const [popupPrice, setPopupPrice] = useState(0);
 
-  const [newProductForm, setNewProductForm] = useState({
-    name: "",
-    description: "",
-    price: 0,
-    stock: 0,
-    file: null,
-  });
-
+  // Fetch vendor products and current user
   useEffect(() => {
     async function fetchProducts() {
       try {
@@ -43,6 +36,7 @@ export default function Products() {
     fetchUser();
   }, [vendorId]);
 
+  // Handle placing orders
   const handleOrder = async (product, quantity, form) => {
     try {
       if (quantity < 0.1) return;
@@ -69,41 +63,6 @@ export default function Products() {
     }
   };
 
-  const handleNewProductChange = (e) => {
-    const { name, value, files } = e.target;
-    setNewProductForm((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }));
-  };
-
-  const handleAddProduct = async (e) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append("name", newProductForm.name);
-      formData.append("description", newProductForm.description);
-      formData.append("price", newProductForm.price);
-      formData.append("stock", newProductForm.stock);
-      if (newProductForm.file) formData.append("file", newProductForm.file);
-
-      const addedProduct = await StoreAPI.addProduct(formData);
-
-      setProducts((prev) => [addedProduct, ...prev]);
-      setNewProductForm({
-        name: "",
-        description: "",
-        price: 0,
-        stock: 0,
-        file: null,
-      });
-      alert("Product added successfully!");
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Failed to add product");
-    }
-  };
-
   const handleQuantityChange = (productId, value, price) => {
     setPopupQuantity(value);
     setPopupPrice(price * value);
@@ -114,65 +73,6 @@ export default function Products() {
       <h1 className="text-2xl font-bold mb-4 text-center text-blue-700">
         Products
       </h1>
-
-      {user?.role === "vendor" && (
-        <form
-          onSubmit={handleAddProduct}
-          className="bg-blue-50 p-4 mb-4 rounded shadow space-y-2"
-        >
-          <h2 className="font-bold text-lg text-blue-800">Add New Product</h2>
-          <input
-            type="text"
-            name="name"
-            placeholder="Product Name"
-            value={newProductForm.name}
-            onChange={handleNewProductChange}
-            required
-            className="w-full p-2 border rounded"
-          />
-          <textarea
-            name="description"
-            placeholder="Description"
-            value={newProductForm.description}
-            onChange={handleNewProductChange}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="number"
-            name="price"
-            placeholder="Price per kg"
-            value={newProductForm.price}
-            onChange={handleNewProductChange}
-            className="w-full p-2 border rounded"
-            min="0"
-            step="0.01"
-            required
-          />
-          <input
-            type="number"
-            name="stock"
-            placeholder="Stock in kg"
-            value={newProductForm.stock}
-            onChange={handleNewProductChange}
-            className="w-full p-2 border rounded"
-            min="0"
-            step="0.1"
-            required
-          />
-          <input
-            type="file"
-            name="file"
-            onChange={handleNewProductChange}
-            className="w-full"
-          />
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-          >
-            Add Product
-          </button>
-        </form>
-      )}
 
       {products.length === 0 ? (
         <p>No products available.</p>
@@ -204,12 +104,8 @@ export default function Products() {
                   onQuantityChange={handleQuantityChange}
                   onOpenPopup={() => {
                     setPopupProduct(product);
-                    setPopupQuantity(
-                      Math.min(product.stock, popupQuantity || 0.5)
-                    );
-                    setPopupPrice(
-                      (popupQuantity || 0.5) * product.price
-                    );
+                    setPopupQuantity(Math.min(product.stock, popupQuantity || 0.5));
+                    setPopupPrice((popupQuantity || 0.5) * product.price);
                   }}
                 />
               )}
@@ -232,6 +128,7 @@ export default function Products() {
   );
 }
 
+// --- Product Details ---
 function ProductDetails({ product, onQuantityChange, onOpenPopup }) {
   const maxQuantity = product.stock > 0 ? Math.min(product.stock, 20) : 0;
   const [quantity, setQuantity] = useState(0.5);
@@ -288,6 +185,7 @@ function ProductDetails({ product, onQuantityChange, onOpenPopup }) {
   );
 }
 
+// --- Order Popup ---
 function OrderPopup({ product, user, quantity, totalPrice, onClose, onConfirm }) {
   const [form, setForm] = useState({
     mobile: user.whatsapp || "",
