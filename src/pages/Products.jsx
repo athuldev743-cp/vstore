@@ -12,7 +12,6 @@ export default function Products() {
   const [popupQuantity, setPopupQuantity] = useState(0.5);
   const [popupPrice, setPopupPrice] = useState(0);
 
-  // Fetch vendor products and current user
   useEffect(() => {
     async function fetchProducts() {
       try {
@@ -36,7 +35,6 @@ export default function Products() {
     fetchUser();
   }, [vendorId]);
 
-  // Handle placing orders
   const handleOrder = async (product, quantity, form) => {
     try {
       if (quantity < 0.1) return;
@@ -75,29 +73,37 @@ export default function Products() {
       </h1>
 
       {products.length === 0 ? (
-        <p>No products available.</p>
+        <p className="text-center text-gray-500">No products available.</p>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-4">
           {products.map((product) => (
-            <div key={product.id} className="bg-white shadow rounded-lg">
-              <div
-                className="product-collapsed cursor-pointer"
+            <div
+              key={product.id}
+              className="bg-white shadow rounded-lg overflow-hidden"
+            >
+              {/* Image */}
+              {product.image_url && (
+                <img
+                  src={`${product.image_url}?t=${Date.now()}`}
+                  alt={product.name}
+                  className="w-full h-40 object-cover"
+                  onClick={() =>
+                    setExpanded(expanded === product.id ? null : product.id)
+                  }
+                />
+              )}
+
+              {/* Title below image */}
+              <h2
+                className="text-center text-blue-700 font-bold py-2 cursor-pointer"
                 onClick={() =>
                   setExpanded(expanded === product.id ? null : product.id)
                 }
               >
-                {product.image_url && (
-                  <img
-                    src={`${product.image_url}?t=${Date.now()}`}
-                    alt={product.name}
-                    className="w-full h-40 object-cover rounded"
-                  />
-                )}
-                <h2 className="product-title text-blue-700 font-bold">
-                  {product.name}
-                </h2>
-              </div>
+                {product.name}
+              </h2>
 
+              {/* Expanded Details */}
               {expanded === product.id && (
                 <ProductDetails
                   product={product}
@@ -128,7 +134,6 @@ export default function Products() {
   );
 }
 
-// --- Product Details ---
 function ProductDetails({ product, onQuantityChange, onOpenPopup }) {
   const maxQuantity = product.stock > 0 ? Math.min(product.stock, 20) : 0;
   const [quantity, setQuantity] = useState(0.5);
@@ -139,19 +144,12 @@ function ProductDetails({ product, onQuantityChange, onOpenPopup }) {
 
   return (
     <div className="p-4 border-t border-gray-200 space-y-2">
-      {product.image_url && (
-        <img
-          src={product.image_url}
-          alt={product.name}
-          className="w-full h-40 object-cover rounded"
-        />
-      )}
-      <p className="text-gray-600">{product.description}</p>
+      <p className="text-gray-700">{product.description}</p>
       <p className="text-gray-500">Price per kg: ₹{product.price}</p>
       <p className="text-gray-500">Stock: {product.stock} kg</p>
 
       <div>
-        <label className="block text-gray-700">
+        <label className="block text-gray-700 mb-1">
           Quantity (kg): {quantity.toFixed(1)}
         </label>
         <input
@@ -166,7 +164,7 @@ function ProductDetails({ product, onQuantityChange, onOpenPopup }) {
         />
       </div>
 
-      <p className="text-gray-700">
+      <p className="text-gray-700 font-semibold">
         Total: ₹{(product.price * quantity).toFixed(2)}
       </p>
 
@@ -185,7 +183,6 @@ function ProductDetails({ product, onQuantityChange, onOpenPopup }) {
   );
 }
 
-// --- Order Popup ---
 function OrderPopup({ product, user, quantity, totalPrice, onClose, onConfirm }) {
   const [form, setForm] = useState({
     mobile: user.whatsapp || "",
