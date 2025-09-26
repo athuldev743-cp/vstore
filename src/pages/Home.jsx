@@ -11,8 +11,7 @@ export default function Home({ user, onLogout }) {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [vendors, setVendors] = useState([]);
   const [loadingVendors, setLoadingVendors] = useState(true);
-
-  console.log("Current user object:", user);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   // --------------------------
   // Fetch vendor approval status
@@ -30,17 +29,21 @@ export default function Home({ user, onLogout }) {
           console.error("Failed to fetch vendor status:", err);
           setVendorApproved(false);
         });
-    } else {
-      console.log("fetchVendorStatus skipped: user not a vendor or missing id");
-      setVendorApproved(false);
     }
   }, [user]);
 
+  // Wait until user is loaded
   useEffect(() => {
+    if (!user) {
+      setVendorApproved(false);
+      setLoadingUser(true);
+      return;
+    }
+    setLoadingUser(false);
     fetchVendorStatus();
-  }, [fetchVendorStatus]);
+  }, [user, fetchVendorStatus]);
 
-  // Optional: Poll every 10 seconds
+  // Optional: Poll every 10 seconds to auto-update approval status
   useEffect(() => {
     if (user?.role === "vendor") {
       const interval = setInterval(() => {
@@ -70,9 +73,20 @@ export default function Home({ user, onLogout }) {
   };
 
   // --------------------------
-  // TEMPORARY: force show button for debugging
+  // Render loading state if user not loaded yet
   // --------------------------
-  // const vendorApproved = true; // Uncomment to test UI logic
+  if (loadingUser) {
+    return (
+      <div className="home-container">
+        <header className="home-header">
+          <h1 className="logo">VStore</h1>
+        </header>
+        <main className="home-content">
+          <p>Loading user information...</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="home-container">
