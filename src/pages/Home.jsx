@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import AddProduct from "./AddProduct";
@@ -12,19 +12,41 @@ export default function Home({ user, onLogout }) {
   const [vendors, setVendors] = useState([]);
   const [loadingVendors, setLoadingVendors] = useState(true);
 
-  // Check vendor status
-  useEffect(() => {
-    if (user?.role === "vendor") {
+  // --------------------------
+  // Fetch vendor approval status
+  // --------------------------
+  const fetchVendorStatus = useCallback(() => {
+    if (user?.role === "vendor" && user.id) {
       StoreAPI.getVendorStatus(user.id)
-        .then((res) => setVendorApproved(res.status === "approved"))
-        .catch(() => setVendorApproved(false));
-    } else {
-      setVendorApproved(false);
+        .then((res) => {
+          console.log("Vendor status response:", res);
+          setVendorApproved(res.status?.toLowerCase() === "approved");
+        })
+        .catch((err) => {
+          console.error("Failed to fetch vendor status:", err);
+          setVendorApproved(false);
+        });
     }
   }, [user]);
 
-  // Fetch approved vendors
   useEffect(() => {
+    fetchVendorStatus();
+  }, [fetchVendorStatus]);
+
+  // Optional: Poll every 10 seconds to auto-update approval status
+  useEffect(() => {
+    if (user?.role === "vendor") {
+      const interval = setInterval(() => {
+        fetchVendorStatus();
+      }, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [user, fetchVendorStatus]);
+
+  // --------------------------
+  // Fetch approved vendors
+  // --------------------------
+  const fetchVendors = useCallback(() => {
     setLoadingVendors(true);
     StoreAPI.listVendors()
       .then(setVendors)
@@ -32,8 +54,12 @@ export default function Home({ user, onLogout }) {
       .finally(() => setLoadingVendors(false));
   }, []);
 
+  useEffect(() => {
+    fetchVendors();
+  }, [fetchVendors]);
+
   const handleVendorClick = (vendorId) => {
-    navigate(`/vendor/${vendorId}`); // only navigate, do NOT show add product
+    navigate(`/vendor/${vendorId}`);
   };
 
   return (
@@ -48,7 +74,7 @@ export default function Home({ user, onLogout }) {
             <button onClick={() => navigate("/apply-vendor")}>Apply as Vendor</button>
           )}
 
-          {/* Vendor Add Product button (always visible if approved) */}
+          {/* Vendor Add Product button */}
           {user?.role === "vendor" && vendorApproved && (
             <button onClick={() => setShowAddProduct(!showAddProduct)}>
               {showAddProduct ? "➖ Close Add Product" : "➕ Add Product"}
