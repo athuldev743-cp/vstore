@@ -12,6 +12,8 @@ export default function Home({ user, onLogout }) {
   const [vendors, setVendors] = useState([]);
   const [loadingVendors, setLoadingVendors] = useState(true);
 
+  console.log("Current user object:", user);
+
   // --------------------------
   // Fetch vendor approval status
   // --------------------------
@@ -19,13 +21,18 @@ export default function Home({ user, onLogout }) {
     if (user?.role === "vendor" && user.id) {
       StoreAPI.getVendorStatus(user.id)
         .then((res) => {
-          console.log("Vendor status response:", res);
-          setVendorApproved(res.status?.toLowerCase() === "approved");
+          console.log("Vendor status API response:", res);
+          const approved = res.status?.toLowerCase() === "approved";
+          console.log("Computed vendorApproved:", approved);
+          setVendorApproved(approved);
         })
         .catch((err) => {
           console.error("Failed to fetch vendor status:", err);
           setVendorApproved(false);
         });
+    } else {
+      console.log("fetchVendorStatus skipped: user not a vendor or missing id");
+      setVendorApproved(false);
     }
   }, [user]);
 
@@ -33,7 +40,7 @@ export default function Home({ user, onLogout }) {
     fetchVendorStatus();
   }, [fetchVendorStatus]);
 
-  // Optional: Poll every 10 seconds to auto-update approval status
+  // Optional: Poll every 10 seconds
   useEffect(() => {
     if (user?.role === "vendor") {
       const interval = setInterval(() => {
@@ -61,6 +68,11 @@ export default function Home({ user, onLogout }) {
   const handleVendorClick = (vendorId) => {
     navigate(`/vendor/${vendorId}`);
   };
+
+  // --------------------------
+  // TEMPORARY: force show button for debugging
+  // --------------------------
+  // const vendorApproved = true; // Uncomment to test UI logic
 
   return (
     <div className="home-container">
