@@ -151,3 +151,7 @@ export const approveVendor = async (vendorId) =>
 
 export const rejectVendor = async (vendorId) =>
   request(`/api/store/vendors/${vendorId}/reject`, { method: "POST" });
+
+fetch("https://virtual-store-backed.onrender.com/test-cors")
+  .then(r => r.json())
+  .then(console.log)
