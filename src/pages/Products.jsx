@@ -35,35 +35,31 @@ export default function Products() {
     fetchUser();
   }, [vendorId]);
 
-const handleOrder = async (product, quantity, form) => {
-  try {
-    if (quantity < 0.1) return;
+  const handleOrder = async (product, quantity, form) => {
+    try {
+      if (quantity < 0.1) return;
 
-    const res = await StoreAPI.placeOrder({
-      product_id: product.id,
-      quantity,
-      mobile: form.mobile,
-      address: form.address,
-    });
+      const res = await StoreAPI.placeOrder({
+        product_id: product.id,
+        quantity,
+        mobile: form.mobile,
+        address: form.address,
+      });
 
-    alert(
-      `Order placed! Remaining stock: ${res.remaining_stock} kg` +
-      (res.vendor_notified ? "\n✅ Vendor notified via WhatsApp" : "\n⚠ Vendor not notified")
-    );
+      alert(`Order placed! Remaining stock: ${res.remaining_stock} kg`);
 
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === product.id ? { ...p, stock: res.remaining_stock } : p
-      )
-    );
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id ? { ...p, stock: res.remaining_stock } : p
+        )
+      );
 
-    setPopupProduct(null);
-  } catch (err) {
-    console.error(err);
-    alert(err.message || "Failed to place order");
-  }
-};
-
+      setPopupProduct(null);
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to place order");
+    }
+  };
 
   const handleQuantityChange = (productId, value, price) => {
     setPopupQuantity(value);
