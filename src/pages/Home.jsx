@@ -7,10 +7,20 @@ import "./Home.css";
 export default function Home({ user, onLogout }) {
   const navigate = useNavigate();
 
+  const [userLoaded, setUserLoaded] = useState(false); // Tracks when user loading is done
   const [vendorApproved, setVendorApproved] = useState(false);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [vendors, setVendors] = useState([]);
   const [loadingVendors, setLoadingVendors] = useState(true);
+
+  // --------------------------
+  // Set userLoaded flag once user is fetched (even if null)
+  // --------------------------
+  useEffect(() => {
+    if (user !== undefined) {
+      setUserLoaded(true);
+    }
+  }, [user]);
 
   // --------------------------
   // Fetch vendor approval status
@@ -28,18 +38,14 @@ export default function Home({ user, onLogout }) {
           console.error("Failed to fetch vendor status:", err);
           setVendorApproved(false);
         });
+    } else {
+      setVendorApproved(false);
     }
   }, [user]);
 
-  // --------------------------
-  // Run when user is loaded
-  // --------------------------
   useEffect(() => {
-    if (!user) return; // Wait until user is loaded
-    if (user.role === "vendor" && user.id) {
+    if (user?.role === "vendor" && user.id) {
       fetchVendorStatus();
-    } else {
-      setVendorApproved(false);
     }
   }, [user, fetchVendorStatus]);
 
@@ -73,9 +79,9 @@ export default function Home({ user, onLogout }) {
   };
 
   // --------------------------
-  // Render loading state if user is null
+  // Show loading screen until userLoaded
   // --------------------------
-  if (user === null) {
+  if (!userLoaded) {
     return (
       <div className="home-container">
         <header className="home-header">
@@ -88,6 +94,9 @@ export default function Home({ user, onLogout }) {
     );
   }
 
+  // --------------------------
+  // Main UI
+  // --------------------------
   return (
     <div className="home-container">
       <header className="home-header">
