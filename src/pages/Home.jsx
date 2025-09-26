@@ -29,9 +29,7 @@ export default function Home({ user, onLogout }) {
     if (user?.role === "vendor" && user.id) {
       StoreAPI.getVendorStatus(user.id)
         .then((res) => {
-          console.log("Vendor status API response:", res);
           const approved = res.status?.toLowerCase() === "approved";
-          console.log("Computed vendorApproved:", approved);
           setVendorApproved(approved);
         })
         .catch((err) => {
@@ -49,7 +47,7 @@ export default function Home({ user, onLogout }) {
     }
   }, [user, fetchVendorStatus]);
 
-  // Optional: Poll every 10 seconds to auto-update approval status
+  // Optional: Poll every 10 seconds to auto-update vendor status
   useEffect(() => {
     if (user?.role === "vendor") {
       const interval = setInterval(() => {
@@ -102,6 +100,7 @@ export default function Home({ user, onLogout }) {
       <header className="home-header">
         <h1 className="logo">VStore</h1>
         <div className="header-buttons">
+          {/* Guest */}
           {!user && <button onClick={() => navigate("/auth")}>Sign Up / Login</button>}
 
           {/* Customer */}
@@ -109,7 +108,7 @@ export default function Home({ user, onLogout }) {
             <button onClick={() => navigate("/apply-vendor")}>Apply as Vendor</button>
           )}
 
-          {/* Vendor Add Product button */}
+          {/* Vendor Add Product */}
           {user?.role === "vendor" && vendorApproved && (
             <button onClick={() => setShowAddProduct(!showAddProduct)}>
               {showAddProduct ? "➖ Close Add Product" : "➕ Add Product"}
@@ -119,7 +118,7 @@ export default function Home({ user, onLogout }) {
           {/* Admin */}
           {user?.role === "admin" && <button onClick={() => navigate("/admin")}>🛠 Admin</button>}
 
-          {/* Logout */}
+          {/* Logout visible for all logged-in users */}
           {user && <button onClick={onLogout}>Logout</button>}
         </div>
       </header>
