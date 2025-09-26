@@ -67,8 +67,8 @@ export default function Products() {
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto bg-white">
-      <h1 className="text-2xl font-bold mb-4 text-center text-blue-700">
+    <div className="p-4 max-w-md mx-auto">
+      <h1 className="text-center text-2xl font-bold text-blue-700 mb-4">
         Products
       </h1>
 
@@ -77,25 +77,21 @@ export default function Products() {
       ) : (
         <div className="space-y-4">
           {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white shadow rounded-lg overflow-hidden"
-            >
+            <div key={product.id} className="product-card">
               {/* Image */}
               {product.image_url && (
                 <img
                   src={`${product.image_url}?t=${Date.now()}`}
                   alt={product.name}
-                  className="w-full h-40 object-cover"
                   onClick={() =>
                     setExpanded(expanded === product.id ? null : product.id)
                   }
                 />
               )}
 
-              {/* Title below image */}
+              {/* Title */}
               <h2
-                className="text-center text-blue-700 font-bold py-2 cursor-pointer"
+                className="product-title"
                 onClick={() =>
                   setExpanded(expanded === product.id ? null : product.id)
                 }
@@ -103,7 +99,7 @@ export default function Products() {
                 {product.name}
               </h2>
 
-              {/* Expanded Details */}
+              {/* Details */}
               {expanded === product.id && (
                 <ProductDetails
                   product={product}
@@ -143,15 +139,13 @@ function ProductDetails({ product, onQuantityChange, onOpenPopup }) {
   }, [quantity, product.price, product.id, onQuantityChange]);
 
   return (
-    <div className="p-4 border-t border-gray-200 space-y-2">
-      <p className="text-gray-700">{product.description}</p>
-      <p className="text-gray-500">Price per kg: ₹{product.price}</p>
-      <p className="text-gray-500">Stock: {product.stock} kg</p>
+    <div className="product-details expanded">
+      <p>{product.description}</p>
+      <p>Price per kg: ₹{product.price}</p>
+      <p>Stock: {product.stock} kg</p>
 
       <div>
-        <label className="block text-gray-700 mb-1">
-          Quantity (kg): {quantity.toFixed(1)}
-        </label>
+        <label>Quantity (kg): {quantity.toFixed(1)}</label>
         <input
           type="range"
           min="0.5"
@@ -159,23 +153,16 @@ function ProductDetails({ product, onQuantityChange, onOpenPopup }) {
           step="0.1"
           value={Number(quantity)}
           onChange={(e) => setQuantity(Number(e.target.value))}
-          className="w-full"
           disabled={product.stock <= 0}
         />
       </div>
 
-      <p className="text-gray-700 font-semibold">
-        Total: ₹{(product.price * quantity).toFixed(2)}
-      </p>
+      <p>Total: ₹{(product.price * quantity).toFixed(2)}</p>
 
       <button
         onClick={onOpenPopup}
         disabled={product.stock <= 0}
-        className={`mt-2 px-4 py-2 w-full text-white rounded ${
-          product.stock > 0
-            ? "bg-green-600 hover:bg-green-700"
-            : "bg-gray-400 cursor-not-allowed"
-        }`}
+        className={product.stock > 0 ? "btn-green" : "btn-disabled"}
       >
         🛒 {product.stock > 0 ? "Place Order" : "Out of Stock"}
       </button>
@@ -196,14 +183,10 @@ function OrderPopup({ product, user, quantity, totalPrice, onClose, onConfirm })
 
   return (
     <div className="popup-overlay">
-      <div className="popup-card bg-blue-50 p-4 rounded shadow">
-        <h2 className="text-blue-700 font-bold text-lg">
-          Order: {product.name}
-        </h2>
-        <p className="text-gray-700">Price per kg: ₹{product.price}</p>
-        <p className="text-gray-700 font-bold">
-          Total: ₹{(product.price * form.quantity).toFixed(2)}
-        </p>
+      <div className="popup-card">
+        <h2>Order: {product.name}</h2>
+        <p>Price per kg: ₹{product.price}</p>
+        <p>Total: ₹{(product.price * form.quantity).toFixed(2)}</p>
 
         <label>
           Quantity (kg):
@@ -236,17 +219,11 @@ function OrderPopup({ product, user, quantity, totalPrice, onClose, onConfirm })
           />
         </label>
 
-        <div className="popup-actions flex justify-between mt-2">
-          <button
-            onClick={() => onConfirm(product, form.quantity, form)}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
+        <div className="popup-actions">
+          <button onClick={() => onConfirm(product, form.quantity, form)} className="btn-green">
             Confirm Order
           </button>
-          <button
-            onClick={onClose}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
+          <button onClick={onClose} className="btn-red">
             Cancel
           </button>
         </div>
