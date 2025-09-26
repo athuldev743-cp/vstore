@@ -11,7 +11,6 @@ export default function Home({ user, onLogout }) {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [vendors, setVendors] = useState([]);
   const [loadingVendors, setLoadingVendors] = useState(true);
-  const [loadingUser, setLoadingUser] = useState(true);
 
   // --------------------------
   // Fetch vendor approval status
@@ -32,15 +31,16 @@ export default function Home({ user, onLogout }) {
     }
   }, [user]);
 
-  // Wait until user is loaded
+  // --------------------------
+  // Run when user is loaded
+  // --------------------------
   useEffect(() => {
-    if (!user) {
+    if (!user) return; // Wait until user is loaded
+    if (user.role === "vendor" && user.id) {
+      fetchVendorStatus();
+    } else {
       setVendorApproved(false);
-      setLoadingUser(true);
-      return;
     }
-    setLoadingUser(false);
-    fetchVendorStatus();
   }, [user, fetchVendorStatus]);
 
   // Optional: Poll every 10 seconds to auto-update approval status
@@ -73,9 +73,9 @@ export default function Home({ user, onLogout }) {
   };
 
   // --------------------------
-  // Render loading state if user not loaded yet
+  // Render loading state if user is null
   // --------------------------
-  if (loadingUser) {
+  if (user === null) {
     return (
       <div className="home-container">
         <header className="home-header">
@@ -116,36 +116,27 @@ export default function Home({ user, onLogout }) {
       </header>
 
       <main className="home-content">
-        {!user ? (
-          <div className="welcome">
-            <h2>Welcome to VStore!</h2>
-            <p>Sign up or login to see products and place orders.</p>
+        {/* Vendor Add Product Form */}
+        {showAddProduct && (
+          <div className="add-product-container">
+            <AddProduct onProductAdded={() => alert("Product added successfully!")} />
           </div>
-        ) : (
-          <>
-            {/* Vendor Add Product Form */}
-            {showAddProduct && (
-              <div className="add-product-container">
-                <AddProduct onProductAdded={() => alert("Product added successfully!")} />
-              </div>
-            )}
+        )}
 
-            {/* Stores */}
-            <h2>Available Stores</h2>
-            {loadingVendors ? (
-              <p>Loading stores...</p>
-            ) : vendors.length === 0 ? (
-              <p>No stores available.</p>
-            ) : (
-              <ul className="vendor-list">
-                {vendors.map((v) => (
-                  <li key={v.id} className="vendor-card" onClick={() => handleVendorClick(v.id)}>
-                    <strong>{v.shop_name || "Unnamed Store"}</strong>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
+        {/* Stores */}
+        <h2>Available Stores</h2>
+        {loadingVendors ? (
+          <p>Loading stores...</p>
+        ) : vendors.length === 0 ? (
+          <p>No stores available.</p>
+        ) : (
+          <ul className="vendor-list">
+            {vendors.map((v) => (
+              <li key={v.id} className="vendor-card" onClick={() => handleVendorClick(v.id)}>
+                <strong>{v.shop_name || "Unnamed Store"}</strong>
+              </li>
+            ))}
+          </ul>
         )}
       </main>
     </div>
