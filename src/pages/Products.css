@@ -1,128 +1,104 @@
-/* Container for products grid in Home.jsx */
-.products-grid {
+/* Grid layout */
+.product-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  padding: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  padding: 12px;
 }
 
-/* Individual Product Card */
+/* Product card */
 .product-card {
-  background-color: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 8px;
   text-align: center;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.product-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
 .product-card img {
   width: 100%;
-  height: 160px; /* fixed height for uniformity */
+  height: 160px;
   object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .product-card h3 {
-  margin: 8px 0 12px 0;
+  margin: 8px 0 4px;
   font-size: 1rem;
-  padding: 0 6px;
-  word-break: break-word;
+  cursor: pointer;
+}
+
+.product-card .price {
+  font-weight: 600;
+  color: #4f46e5;
 }
 
 /* Popup overlay */
 .popup-overlay,
 .popup-overlay-inner {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.6);
+  top: 0; left: 0; right:0; bottom:0;
+  background: rgba(0,0,0,0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 100;
 }
 
 .popup-card {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  width: 90%;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
   max-width: 400px;
-  max-height: 90vh;
-  overflow-y: auto;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.popup-card h2, .popup-card h3 {
-  margin-bottom: 12px;
+.popup-card h2,
+.popup-card h3 {
+  margin-bottom: 8px;
 }
 
 .popup-card p {
   margin-bottom: 8px;
-  line-height: 1.3;
 }
 
 .popup-card label {
   display: block;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 
 .popup-card input[type="text"],
-.popup-card textarea {
+.popup-card textarea,
+.popup-card input[type="range"] {
   width: 100%;
-  padding: 6px 8px;
+  padding: 8px;
   margin-top: 4px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 0.95rem;
-}
-
-.popup-card input[type="range"] {
-  width: 100%;
-  margin-top: 6px;
-}
-
-/* Buttons */
-.btn-green,
-.btn-red {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  margin-right: 8px;
-}
-
-.btn-green {
-  background-color: #28a745;
-  color: white;
-}
-
-.btn-red {
-  background-color: #dc3545;
-  color: white;
 }
 
 .popup-actions {
+  display: flex;
+  justify-content: space-between;
   margin-top: 12px;
-  text-align: right;
 }
 
-/* Mobile adjustments */
-@media (min-width: 600px) {
-  .product-card img {
-    height: 200px;
-  }
+.btn-green {
+  background-color: #4f46e5;
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-@media (min-width: 768px) {
-  .products-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
+.btn-red {
+  background-color: #ef4444;
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }

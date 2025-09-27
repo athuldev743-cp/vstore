@@ -9,16 +9,25 @@ import "./Home.css";
 export default function Home({ user }) {
   const navigate = useNavigate();
 
+  // -------------------------
+  // States
+  // -------------------------
   const [userLoaded, setUserLoaded] = useState(false);
   const [vendorApproved, setVendorApproved] = useState(false);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
 
+  // -------------------------
+  // Mark user as loaded
+  // -------------------------
   useEffect(() => {
     if (user !== undefined) setUserLoaded(true);
   }, [user]);
 
+  // -------------------------
+  // Fetch vendor approval status
+  // -------------------------
   const fetchVendorStatus = useCallback(() => {
     if (user?.role === "vendor" && user.id) {
       StoreAPI.getVendorStatus(user.id)
@@ -33,6 +42,9 @@ export default function Home({ user }) {
     if (user?.role === "vendor" && user.id) fetchVendorStatus();
   }, [user, fetchVendorStatus]);
 
+  // -------------------------
+  // Fetch all products
+  // -------------------------
   const fetchProducts = useCallback(() => {
     setLoadingProducts(true);
     StoreAPI.listProducts()
@@ -45,6 +57,9 @@ export default function Home({ user }) {
     fetchProducts();
   }, [fetchProducts]);
 
+  // -------------------------
+  // Render Loading State
+  // -------------------------
   if (!userLoaded) {
     return (
       <div className="home-container">
@@ -58,27 +73,39 @@ export default function Home({ user }) {
     );
   }
 
+  // -------------------------
+  // Render Home Page
+  // -------------------------
   return (
     <div className="home-container">
       <header className="home-header">
         <h1 className="logo">VStore</h1>
         <div className="header-buttons">
-          {!user && <button onClick={() => navigate("/auth")}>Sign Up / Login</button>}
-
-          {user?.role === "customer" && !vendorApproved && (
-            <button onClick={() => navigate("/apply-vendor")}>Apply as Vendor</button>
+          {/* Auth Button */}
+          {!user && (
+            <button onClick={() => navigate("/auth")}>Sign Up / Login</button>
           )}
 
+          {/* Apply Vendor Button */}
+          {user?.role === "customer" && !vendorApproved && (
+            <button onClick={() => navigate("/apply-vendor")}>
+              Apply as Vendor
+            </button>
+          )}
+
+          {/* Vendor Add Product */}
           {user?.role === "vendor" && vendorApproved && (
             <button onClick={() => setShowAddProduct(!showAddProduct)}>
               {showAddProduct ? "➖ Close Add Product" : "➕ Add Product"}
             </button>
           )}
 
+          {/* Admin Panel */}
           {user?.role === "admin" && (
             <button onClick={() => navigate("/admin")}>🛠 Admin</button>
           )}
 
+          {/* Account Button */}
           {user && (
             <button
               className="btn-account"
@@ -92,12 +119,14 @@ export default function Home({ user }) {
       </header>
 
       <main className="home-content">
+        {/* Add Product Component */}
         {showAddProduct && (
           <div className="add-product-container">
             <AddProduct onProductAdded={fetchProducts} />
           </div>
         )}
 
+        {/* Products Section */}
         <h2>Products</h2>
         {loadingProducts ? (
           <p>Loading products...</p>

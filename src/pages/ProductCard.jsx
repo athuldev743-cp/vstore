@@ -5,21 +5,23 @@ import "./Products.css";
 export default function ProductCard({ product, user }) {
   const [showDetails, setShowDetails] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
-  const [quantity, setQuantity] = useState(0.5);
+  const [quantity, setQuantity] = useState(Math.min(0.5, product.stock));
   const [form, setForm] = useState({ mobile: "", address: "" });
+  const [loadingUser, setLoadingUser] = useState(true);
 
-  // Fetch user details if logged in
   useEffect(() => {
     const fetchUser = async () => {
-      if (!user) return;
+      if (!user) return setLoadingUser(false);
       try {
         const currentUser = await StoreAPI.getCurrentUser();
         setForm({
-          mobile: currentUser.whatsapp || currentUser.mobile || "",
+          mobile: currentUser.mobile || "",
           address: currentUser.address || "",
         });
       } catch (err) {
         console.error("Failed to fetch user info:", err);
+      } finally {
+        setLoadingUser(false);
       }
     };
     fetchUser();
@@ -35,7 +37,6 @@ export default function ProductCard({ product, user }) {
         mobile: form.mobile,
         address: form.address,
       });
-
       alert(`Order placed! Remaining stock: ${res.remaining_stock} kg`);
       setShowOrder(false);
       setShowDetails(false);
@@ -51,10 +52,10 @@ export default function ProductCard({ product, user }) {
         src={product.image_url || "/default-product.jpg"}
         alt={product.name}
         onClick={() => setShowDetails(true)}
-        onError={(e) => { e.target.src = "/default-product.jpg"; }}
+        onError={(e) => (e.target.src = "/default-product.jpg")}
       />
       <h3 onClick={() => setShowDetails(true)}>{product.name}</h3>
-      <p>₹{product.price} / kg</p>
+      <p className="price">₹{product.price} / kg</p>
 
       {showDetails && (
         <div className="popup-overlay">
@@ -66,7 +67,7 @@ export default function ProductCard({ product, user }) {
 
             <button
               onClick={() => setShowOrder(true)}
-              disabled={product.stock <= 0}
+              disabled={product.stock <= 0 || loadingUser}
             >
               {product.stock > 0 ? "🛒 View / Order" : "Out of Stock"}
             </button>
@@ -98,7 +99,9 @@ export default function ProductCard({ product, user }) {
                     <input
                       type="text"
                       value={form.mobile}
-                      onChange={(e) => setForm({ ...form, mobile: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, mobile: e.target.value })
+                      }
                     />
                   </label>
 
@@ -106,7 +109,9 @@ export default function ProductCard({ product, user }) {
                     Address:
                     <textarea
                       value={form.address}
-                      onChange={(e) => setForm({ ...form, address: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, address: e.target.value })
+                      }
                     />
                   </label>
 
@@ -114,7 +119,10 @@ export default function ProductCard({ product, user }) {
                     <button onClick={handleOrder} className="btn-green">
                       Confirm Order
                     </button>
-                    <button onClick={() => setShowOrder(false)} className="btn-red">
+                    <button
+                      onClick={() => setShowOrder(false)}
+                      className="btn-red"
+                    >
                       Cancel
                     </button>
                   </div>
