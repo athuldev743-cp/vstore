@@ -43,32 +43,14 @@ const request = async (endpoint, options = {}) => {
 // -------------------------
 // Auth APIs
 // -------------------------
-export const signup = async (data) => {
-  return request("/api/users/signup", {
-    method: "POST",
-    body: JSON.stringify({
-      username: data.username,
-      email: data.email,
-      password: data.password,
-      mobile: data.mobile,   
-      address: data.address, 
-    }),
-  });
-};
+export const signup = async (data) =>
+  request("/api/users/signup", { method: "POST", body: JSON.stringify(data) });
 
-
-export const login = async (data) => {
-  return request("/api/users/login", {
-    method: "POST",
-    body: JSON.stringify({
-      email: data.email,
-      password: data.password,
-    }),
-  });
-};
-
+export const login = async (data) =>
+  request("/api/users/login", { method: "POST", body: JSON.stringify(data) });
 
 export const getCurrentUser = async () => request("/api/users/me");
+
 
 // -------------------------
 // Store APIs

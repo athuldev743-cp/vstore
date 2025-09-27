@@ -3,7 +3,7 @@ import * as StoreAPI from "../api/StoreAPI";
 import "./Auth.css";
 
 export default function Auth({ onLoginSuccess }) {
-  const [isLogin, setIsLogin] = useState(true); // toggle between login/signup
+  const [isLogin, setIsLogin] = useState(true); // toggle login/signup
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,10 +18,8 @@ export default function Auth({ onLoginSuccess }) {
     try {
       let result;
       if (isLogin) {
-        // Login flow
         result = await StoreAPI.login({ email, password });
       } else {
-        // Signup flow
         result = await StoreAPI.signup({ username, email, password, mobile, address });
       }
 
@@ -30,7 +28,8 @@ export default function Auth({ onLoginSuccess }) {
         onLoginSuccess();
       }
     } catch (err) {
-      setError(err.detail || "Operation failed");
+      console.error(err);
+      setError(err.detail || err.message || "Operation failed");
     }
   };
 
@@ -47,6 +46,7 @@ export default function Auth({ onLoginSuccess }) {
             required
           />
         )}
+
         <input
           type="email"
           placeholder="Email"
@@ -54,6 +54,7 @@ export default function Auth({ onLoginSuccess }) {
           onChange={(e) => setEmail(e.target.value)}
           required
         />
+
         <input
           type="password"
           placeholder="Password"
@@ -61,6 +62,7 @@ export default function Auth({ onLoginSuccess }) {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+
         {!isLogin && (
           <>
             <input
@@ -78,6 +80,7 @@ export default function Auth({ onLoginSuccess }) {
             />
           </>
         )}
+
         {error && <p className="auth-error">{error}</p>}
         <button type="submit">{isLogin ? "Login" : "Sign Up"}</button>
       </form>

@@ -6,18 +6,23 @@ export default function ProductCard({ product, user }) {
   const [showDetails, setShowDetails] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
   const [quantity, setQuantity] = useState(0.5);
-  const [form, setForm] = useState({
-    mobile: user?.mobile || "",
-    address: user?.address || "",
-  });
+  const [form, setForm] = useState({ mobile: "", address: "" });
 
+  // Fetch user details if logged in
   useEffect(() => {
-    if (user) {
-      setForm({
-        mobile: user.mobile || "",
-        address: user.address || "",
-      });
-    }
+    const fetchUser = async () => {
+      if (!user) return;
+      try {
+        const currentUser = await StoreAPI.getCurrentUser();
+        setForm({
+          mobile: currentUser.whatsapp || currentUser.mobile || "",
+          address: currentUser.address || "",
+        });
+      } catch (err) {
+        console.error("Failed to fetch user info:", err);
+      }
+    };
+    fetchUser();
   }, [user]);
 
   const handleOrder = async () => {
@@ -42,16 +47,15 @@ export default function ProductCard({ product, user }) {
 
   return (
     <div className="product-card">
-  <img
-    src={product.image_url || "/default-product.jpg"}
-    alt={product.name}
-    onClick={() => setShowDetails(true)}
-    onError={(e) => { e.target.src = "/default-product.jpg"; }}
-  />
-  <h3 onClick={() => setShowDetails(true)}>{product.name}</h3>
-  <p>₹{product.price} / kg</p> {/* optional short info */}
+      <img
+        src={product.image_url || "/default-product.jpg"}
+        alt={product.name}
+        onClick={() => setShowDetails(true)}
+        onError={(e) => { e.target.src = "/default-product.jpg"; }}
+      />
+      <h3 onClick={() => setShowDetails(true)}>{product.name}</h3>
+      <p>₹{product.price} / kg</p>
 
-      {/* Product Details Popup */}
       {showDetails && (
         <div className="popup-overlay">
           <div className="popup-card">
@@ -70,13 +74,11 @@ export default function ProductCard({ product, user }) {
               Close
             </button>
 
-            {/* Order Form Popup */}
             {showOrder && (
               <div className="popup-overlay-inner">
                 <div className="popup-card">
                   <h3>Order: {product.name}</h3>
 
-                  {/* Quantity Slider */}
                   <label>
                     Quantity (kg): {quantity.toFixed(1)}
                     <input
@@ -96,9 +98,7 @@ export default function ProductCard({ product, user }) {
                     <input
                       type="text"
                       value={form.mobile}
-                      onChange={(e) =>
-                        setForm({ ...form, mobile: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, mobile: e.target.value })}
                     />
                   </label>
 
@@ -106,9 +106,7 @@ export default function ProductCard({ product, user }) {
                     Address:
                     <textarea
                       value={form.address}
-                      onChange={(e) =>
-                        setForm({ ...form, address: e.target.value })
-                      }
+                      onChange={(e) => setForm({ ...form, address: e.target.value })}
                     />
                   </label>
 
@@ -116,10 +114,7 @@ export default function ProductCard({ product, user }) {
                     <button onClick={handleOrder} className="btn-green">
                       Confirm Order
                     </button>
-                    <button
-                      onClick={() => setShowOrder(false)}
-                      className="btn-red"
-                    >
+                    <button onClick={() => setShowOrder(false)} className="btn-red">
                       Cancel
                     </button>
                   </div>
