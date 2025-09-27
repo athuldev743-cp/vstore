@@ -40,7 +40,11 @@ export default function ProductCard({ product, user }) {
 
   return (
     <div className="product-card">
-      {product.image_url && <img src={product.image_url} alt={product.name} />}
+      <img
+        src={product.image_url || "/default-product.jpg"}
+        alt={product.name}
+        onError={(e) => { e.target.src = "/default-product.jpg"; }}
+      />
       <h3>{product.name}</h3>
       <p>{product.description}</p>
       <p>₹{product.price} / kg</p>
@@ -94,7 +98,10 @@ export default function ProductCard({ product, user }) {
               <button onClick={handleOrder} className="btn-green">
                 Confirm Order
               </button>
-              <button onClick={() => setShowPopup(false)} className="btn-red">
+              <button
+                onClick={() => setShowPopup(false)}
+                className="btn-red"
+              >
                 Cancel
               </button>
             </div>
