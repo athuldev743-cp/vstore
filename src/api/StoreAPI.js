@@ -50,8 +50,8 @@ export const signup = async (data) => {
       username: data.username,
       email: data.email,
       password: data.password,
-      mobile: data.mobile,   // ✅ added
-      address: data.address, // ✅ added
+      mobile: data.mobile,   
+      address: data.address, 
     }),
   });
 };
