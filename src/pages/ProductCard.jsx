@@ -3,7 +3,8 @@ import * as StoreAPI from "../api/StoreAPI";
 import "./Products.css";
 
 export default function ProductCard({ product, user }) {
-  const [showPopup, setShowPopup] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showOrder, setShowOrder] = useState(false);
   const [quantity, setQuantity] = useState(0.5);
   const [form, setForm] = useState({
     mobile: user?.mobile || "",
@@ -20,9 +21,9 @@ export default function ProductCard({ product, user }) {
   }, [user]);
 
   const handleOrder = async () => {
-    try {
-      if (quantity < 0.1) return alert("Minimum quantity is 0.1kg");
+    if (quantity < 0.1) return alert("Minimum quantity is 0.1kg");
 
+    try {
       const res = await StoreAPI.placeOrder({
         product_id: product.id,
         quantity,
@@ -31,7 +32,8 @@ export default function ProductCard({ product, user }) {
       });
 
       alert(`Order placed! Remaining stock: ${res.remaining_stock} kg`);
-      setShowPopup(false);
+      setShowOrder(false);
+      setShowDetails(false);
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to place order");
@@ -43,68 +45,86 @@ export default function ProductCard({ product, user }) {
       <img
         src={product.image_url || "/default-product.jpg"}
         alt={product.name}
+        onClick={() => setShowDetails(true)}
         onError={(e) => { e.target.src = "/default-product.jpg"; }}
       />
-      <h3>{product.name}</h3>
-      <p>{product.description}</p>
-      <p>₹{product.price} / kg</p>
-      <p>Stock: {product.stock} kg</p>
+      <h3 onClick={() => setShowDetails(true)}>{product.name}</h3>
 
-      <button
-        disabled={product.stock <= 0}
-        onClick={() => setShowPopup(true)}
-      >
-        {product.stock > 0 ? "🛒 Order Now" : "Out of Stock"}
-      </button>
-
-      {showPopup && (
+      {/* Product Details Popup */}
+      {showDetails && (
         <div className="popup-overlay">
           <div className="popup-card">
-            <h2>Order: {product.name}</h2>
-            <p>Price per kg: ₹{product.price}</p>
+            <h2>{product.name}</h2>
+            <p>{product.description}</p>
+            <p>Price: ₹{product.price} / kg</p>
+            <p>Stock: {product.stock} kg</p>
 
-            <label>
-              Quantity (kg):
-              <input
-                type="number"
-                min="0.5"
-                max={Math.min(product.stock, 20)}
-                step="0.1"
-                value={quantity}
-                onChange={(e) => setQuantity(Number(e.target.value))}
-              />
-            </label>
+            <button
+              onClick={() => setShowOrder(true)}
+              disabled={product.stock <= 0}
+            >
+              {product.stock > 0 ? "🛒 View / Order" : "Out of Stock"}
+            </button>
+            <button onClick={() => setShowDetails(false)} className="btn-red">
+              Close
+            </button>
 
-            <label>
-              Mobile:
-              <input
-                type="text"
-                value={form.mobile}
-                onChange={(e) => setForm({ ...form, mobile: e.target.value })}
-              />
-            </label>
+            {/* Order Form Popup */}
+            {showOrder && (
+              <div className="popup-overlay-inner">
+                <div className="popup-card">
+                  <h3>Order: {product.name}</h3>
 
-            <label>
-              Address:
-              <textarea
-                value={form.address}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-              />
-            </label>
+                  {/* Quantity Slider */}
+                  <label>
+                    Quantity (kg): {quantity.toFixed(1)}
+                    <input
+                      type="range"
+                      min="0.1"
+                      max={Math.min(product.stock, 20)}
+                      step="0.1"
+                      value={quantity}
+                      onChange={(e) => setQuantity(parseFloat(e.target.value))}
+                    />
+                  </label>
 
-            <p>Total: ₹{(product.price * quantity).toFixed(2)}</p>
+                  <p>Total Price: ₹{(product.price * quantity).toFixed(2)}</p>
 
-            <div className="popup-actions">
-              <button onClick={handleOrder} className="btn-green">
-                Confirm Order
-              </button>
-              <button
-                onClick={() => setShowPopup(false)}
-                className="btn-red"
-              >
-                Cancel
-              </button>
-            </div>
+                  <label>
+                    Mobile:
+                    <input
+                      type="text"
+                      value={form.mobile}
+                      onChange={(e) =>
+                        setForm({ ...form, mobile: e.target.value })
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    Address:
+                    <textarea
+                      value={form.address}
+                      onChange={(e) =>
+                        setForm({ ...form, address: e.target.value })
+                      }
+                    />
+                  </label>
+
+                  <div className="popup-actions">
+                    <button onClick={handleOrder} className="btn-green">
+                      Confirm Order
+                    </button>
+                    <button
+                      onClick={() => setShowOrder(false)}
+                      className="btn-red"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
