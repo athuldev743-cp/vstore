@@ -25,20 +25,17 @@ export default function Home({ user }) {
   }, [user]);
 
   // -------------------------
-  // Fetch vendor approval status - FIXED VERSION
+  // Fetch vendor approval status
   // -------------------------
   const fetchVendorStatus = useCallback(async () => {
-    // If no user or user is not a customer, don't check vendor status
-    if (!user || user.role !== "customer") {
+    if (!user) {
       setVendorApproved(false);
       return;
     }
 
     setStatusLoading(true);
     try {
-      // Use the current user's ID - check different possible ID properties
       const userId = user.id || user._id || user.userId;
-      
       if (!userId) {
         console.warn("No user ID found for vendor status check");
         setVendorApproved(false);
@@ -46,10 +43,11 @@ export default function Home({ user }) {
       }
 
       const res = await StoreAPI.getVendorStatus(userId);
-      console.log("Vendor status response:", res); // Debug log
-      
       const isApproved = res.status?.toLowerCase() === "approved";
       setVendorApproved(isApproved);
+
+      // Update user object to reflect approval
+      if (user.role === "vendor") user.vendorApproved = isApproved;
     } catch (error) {
       console.error("Error fetching vendor status:", error);
       setVendorApproved(false);
@@ -58,11 +56,8 @@ export default function Home({ user }) {
     }
   }, [user]);
 
-  // Check vendor status when user changes
   useEffect(() => {
     fetchVendorStatus();
-    
-    // Only set up interval for customers who might become vendors
     if (user?.role === "customer") {
       const interval = setInterval(fetchVendorStatus, 30000);
       return () => clearInterval(interval);
@@ -76,7 +71,6 @@ export default function Home({ user }) {
     setLoadingProducts(true);
     StoreAPI.listProducts()
       .then((data) => {
-        // Handle different response structures
         const productsArray = Array.isArray(data) ? data : data?.products || [];
         setProducts(productsArray);
       })
@@ -92,18 +86,20 @@ export default function Home({ user }) {
   // Manual refresh function
   // -------------------------
   const handleRefresh = () => {
-    if (user?.role === "customer") {
-      fetchVendorStatus();
-    }
+    fetchVendorStatus();
     fetchProducts();
   };
 
   // -------------------------
   // Navigate to Add Product page
   // -------------------------
-  const handleAddProduct = () => {
-    navigate("/vendor/products");
-  };
+  const handleAddProduct = () => navigate("/vendor/products");
+
+  // -------------------------
+  // Determine if Add Product should show
+  // -------------------------
+  const canAddProduct =
+    (user?.role === "vendor" && user.vendorApproved) || vendorApproved;
 
   // -------------------------
   // Render Loading State
@@ -121,11 +117,6 @@ export default function Home({ user }) {
     );
   }
 
-  // Debug console log to see what's happening
-  console.log("Current user:", user);
-  console.log("Vendor approved:", vendorApproved);
-  console.log("User role:", user?.role);
-
   // -------------------------
   // Render Home Page
   // -------------------------
@@ -134,31 +125,22 @@ export default function Home({ user }) {
       <header className="home-header">
         <h1 className="logo">VStore</h1>
         <div className="header-buttons">
-          {/* Auth Button - Show only when NOT logged in */}
-          {!user && (
-            <button onClick={() => navigate("/auth")}>Sign Up / Login</button>
-          )}
+          {!user && <button onClick={() => navigate("/auth")}>Sign Up / Login</button>}
 
-          {/* Apply Vendor Button - Show for customers who are NOT approved vendors */}
           {user?.role === "customer" && !vendorApproved && (
             <button onClick={() => navigate("/apply-vendor")}>
               {statusLoading ? "Checking..." : "Apply as Vendor"}
             </button>
           )}
 
-          {/* Vendor Add Product - Show for approved vendors OR users with vendor role */}
-          {(vendorApproved || user?.role === "vendor") && (
-            <button 
-              onClick={handleAddProduct}
-              className="add-product-btn"
-            >
+          {canAddProduct && (
+            <button onClick={handleAddProduct} className="add-product-btn">
               ➕ Add Product
             </button>
           )}
 
-          {/* Refresh Button */}
           {user && (
-            <button 
+            <button
               onClick={handleRefresh}
               className="refresh-btn"
               title="Refresh status"
@@ -168,12 +150,10 @@ export default function Home({ user }) {
             </button>
           )}
 
-          {/* Admin Panel */}
           {user?.role === "admin" && (
             <button onClick={() => navigate("/admin")}>🛠 Admin</button>
           )}
 
-          {/* Account Button */}
           {user && (
             <button
               className="btn-account"
@@ -187,7 +167,6 @@ export default function Home({ user }) {
       </header>
 
       <main className="home-content">
-        {/* Products Section */}
         <h2>Products</h2>
         {loadingProducts ? (
           <p>Loading products...</p>
