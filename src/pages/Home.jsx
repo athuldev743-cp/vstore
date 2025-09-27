@@ -8,27 +8,20 @@ import "./Home.css";
 export default function Home({ user }) {
   const navigate = useNavigate();
 
-  // -------------------------
-  // States
-  // -------------------------
   const [userLoaded, setUserLoaded] = useState(false);
   const [vendorApproved, setVendorApproved] = useState(false);
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [statusLoading, setStatusLoading] = useState(false);
 
-  // -------------------------
   // Mark user as loaded
-  // -------------------------
   useEffect(() => {
     if (user !== undefined) setUserLoaded(true);
   }, [user]);
 
-  // -------------------------
   // Fetch vendor approval status
-  // -------------------------
   const fetchVendorStatus = useCallback(async () => {
-    if (!user) {
+    if (!user || user.role !== "customer") {
       setVendorApproved(false);
       return;
     }
@@ -37,17 +30,12 @@ export default function Home({ user }) {
     try {
       const userId = user.id || user._id || user.userId;
       if (!userId) {
-        console.warn("No user ID found for vendor status check");
         setVendorApproved(false);
         return;
       }
 
       const res = await StoreAPI.getVendorStatus(userId);
-      const isApproved = res.status?.toLowerCase() === "approved";
-      setVendorApproved(isApproved);
-
-      // Update user object to reflect approval
-      if (user.role === "vendor") user.vendorApproved = isApproved;
+      setVendorApproved(res.status?.toLowerCase() === "approved");
     } catch (error) {
       console.error("Error fetching vendor status:", error);
       setVendorApproved(false);
@@ -64,9 +52,7 @@ export default function Home({ user }) {
     }
   }, [user, fetchVendorStatus]);
 
-  // -------------------------
-  // Fetch all products
-  // -------------------------
+  // Fetch products
   const fetchProducts = useCallback(() => {
     setLoadingProducts(true);
     StoreAPI.listProducts()
@@ -82,28 +68,17 @@ export default function Home({ user }) {
     fetchProducts();
   }, [fetchProducts]);
 
-  // -------------------------
-  // Manual refresh function
-  // -------------------------
+  // Manual refresh
   const handleRefresh = () => {
-    fetchVendorStatus();
+    if (user?.role === "customer") fetchVendorStatus();
     fetchProducts();
   };
 
-  // -------------------------
-  // Navigate to Add Product page
-  // -------------------------
-  const handleAddProduct = () => navigate("/vendor/products");
+  // Navigate to Add Product
+  const handleAddProduct = () => {
+    navigate("/vendor/products");
+  };
 
-  // -------------------------
-  // Determine if Add Product should show
-  // -------------------------
-  const canAddProduct =
-    (user?.role === "vendor" && user.vendorApproved) || vendorApproved;
-
-  // -------------------------
-  // Render Loading State
-  // -------------------------
   if (!userLoaded) {
     return (
       <div className="home-container">
@@ -117,25 +92,17 @@ export default function Home({ user }) {
     );
   }
 
-  // -------------------------
-  // Render Home Page
-  // -------------------------
   return (
     <div className="home-container">
       <header className="home-header">
         <h1 className="logo">VStore</h1>
+
         <div className="header-buttons">
           {!user && <button onClick={() => navigate("/auth")}>Sign Up / Login</button>}
 
           {user?.role === "customer" && !vendorApproved && (
             <button onClick={() => navigate("/apply-vendor")}>
               {statusLoading ? "Checking..." : "Apply as Vendor"}
-            </button>
-          )}
-
-          {canAddProduct && (
-            <button onClick={handleAddProduct} className="add-product-btn">
-              ➕ Add Product
             </button>
           )}
 
@@ -150,20 +117,26 @@ export default function Home({ user }) {
             </button>
           )}
 
-          {user?.role === "admin" && (
-            <button onClick={() => navigate("/admin")}>🛠 Admin</button>
-          )}
+          {user?.role === "admin" && <button onClick={() => navigate("/admin")}>🛠 Admin</button>}
 
           {user && (
-            <button
-              className="btn-account"
-              onClick={() => navigate("/account")}
-              title="Account"
-            >
+            <button className="btn-account" onClick={() => navigate("/account")} title="Account">
               <User size={20} />
             </button>
           )}
         </div>
+
+        {(vendorApproved || user?.role === "vendor") && (
+          <div className="add-product-container">
+            <button
+              onClick={handleAddProduct}
+              onTouchStart={handleAddProduct}
+              className="add-product-btn"
+            >
+              ➕ Add Product
+            </button>
+          </div>
+        )}
       </header>
 
       <main className="home-content">
@@ -175,7 +148,7 @@ export default function Home({ user }) {
         ) : (
           <div className="products-grid">
             {products.map((p) => (
-              <ProductCard key={p.id || p._id} product={p} user={user} />
+              <ProductCard key={p.id || p._id} product={p} />
             ))}
           </div>
         )}
