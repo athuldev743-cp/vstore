@@ -1,31 +1,82 @@
-/* Group form fields */
-.auth-container form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px; /* consistent spacing */
+/* Container */
+.auth-container {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Inputs */
-.auth-container input {
+/* Title */
+.auth-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 24px;
+  color: #1f2937; /* gray-800 */
+}
+
+/* Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Inputs & Textarea */
+.auth-form input,
+.auth-form textarea {
   width: 100%;
   padding: 12px 14px;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #d1d5db; /* gray-300 */
   font-size: 15px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
+  font-family: inherit;
 }
 
-/* Input focus effect */
-.auth-container input:focus {
-  border-color: #4f46e5;
+.auth-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Focus effect */
+.auth-form input:focus,
+.auth-form textarea:focus {
+  border-color: #4f46e5; /* indigo-600 */
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
   outline: none;
 }
 
-/* Error messages */
-.auth-container .error {
-  margin-top: 10px;
-  color: #e11d48; /* red-600 */
+/* Error message */
+.auth-error {
+  color: #dc2626; /* red-600 */
   font-size: 14px;
   text-align: left;
+  margin-top: 4px;
+}
+
+/* Button */
+.auth-form button {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4f46e5; /* indigo-600 */
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.auth-form button:hover {
+  background-color: #4338ca; /* darker indigo */
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .auth-container {
+    margin: 20px;
+    padding: 20px;
+  }
 }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import * as StoreAPI from "../api/StoreAPI";
+import "./Auth.css"
 
 export default function Auth({ setPage }) {
   const [username, setUsername] = useState("");
