@@ -15,6 +15,7 @@ export default function Home({ user }) {
   const [vendorApproved, setVendorApproved] = useState(false);
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [statusLoading, setStatusLoading] = useState(false);
 
   // -------------------------
   // Mark user as loaded
@@ -24,32 +25,47 @@ export default function Home({ user }) {
   }, [user]);
 
   // -------------------------
-  // Fetch vendor approval status
+  // Fetch vendor approval status - FIXED VERSION
   // -------------------------
   const fetchVendorStatus = useCallback(async () => {
-    if (user?.id) {
-      try {
-        const res = await StoreAPI.getVendorStatus(user.id);
-        const isApproved = res.status?.toLowerCase() === "approved";
-        setVendorApproved(isApproved);
-      } catch (error) {
-        setVendorApproved(false);
-      }
-    } else {
+    // If no user or user is not a customer, don't check vendor status
+    if (!user || user.role !== "customer") {
       setVendorApproved(false);
+      return;
+    }
+
+    setStatusLoading(true);
+    try {
+      // Use the current user's ID - check different possible ID properties
+      const userId = user.id || user._id || user.userId;
+      
+      if (!userId) {
+        console.warn("No user ID found for vendor status check");
+        setVendorApproved(false);
+        return;
+      }
+
+      const res = await StoreAPI.getVendorStatus(userId);
+      console.log("Vendor status response:", res); // Debug log
+      
+      const isApproved = res.status?.toLowerCase() === "approved";
+      setVendorApproved(isApproved);
+    } catch (error) {
+      console.error("Error fetching vendor status:", error);
+      setVendorApproved(false);
+    } finally {
+      setStatusLoading(false);
     }
   }, [user]);
 
-  // Check vendor status when user changes AND periodically
+  // Check vendor status when user changes
   useEffect(() => {
-    if (user?.id) {
-      fetchVendorStatus();
-      
-      // Check every 30 seconds for status updates
+    fetchVendorStatus();
+    
+    // Only set up interval for customers who might become vendors
+    if (user?.role === "customer") {
       const interval = setInterval(fetchVendorStatus, 30000);
       return () => clearInterval(interval);
-    } else {
-      setVendorApproved(false);
     }
   }, [user, fetchVendorStatus]);
 
@@ -59,7 +75,11 @@ export default function Home({ user }) {
   const fetchProducts = useCallback(() => {
     setLoadingProducts(true);
     StoreAPI.listProducts()
-      .then(setProducts)
+      .then((data) => {
+        // Handle different response structures
+        const productsArray = Array.isArray(data) ? data : data?.products || [];
+        setProducts(productsArray);
+      })
       .catch((err) => console.error("Failed to load products:", err))
       .finally(() => setLoadingProducts(false));
   }, []);
@@ -72,7 +92,9 @@ export default function Home({ user }) {
   // Manual refresh function
   // -------------------------
   const handleRefresh = () => {
-    fetchVendorStatus();
+    if (user?.role === "customer") {
+      fetchVendorStatus();
+    }
     fetchProducts();
   };
 
@@ -99,6 +121,11 @@ export default function Home({ user }) {
     );
   }
 
+  // Debug console log to see what's happening
+  console.log("Current user:", user);
+  console.log("Vendor approved:", vendorApproved);
+  console.log("User role:", user?.role);
+
   // -------------------------
   // Render Home Page
   // -------------------------
@@ -107,20 +134,20 @@ export default function Home({ user }) {
       <header className="home-header">
         <h1 className="logo">VStore</h1>
         <div className="header-buttons">
-          {/* Auth Button */}
+          {/* Auth Button - Show only when NOT logged in */}
           {!user && (
             <button onClick={() => navigate("/auth")}>Sign Up / Login</button>
           )}
 
-          {/* Apply Vendor Button */}
+          {/* Apply Vendor Button - Show for customers who are NOT approved vendors */}
           {user?.role === "customer" && !vendorApproved && (
             <button onClick={() => navigate("/apply-vendor")}>
-              Apply as Vendor
+              {statusLoading ? "Checking..." : "Apply as Vendor"}
             </button>
           )}
 
-          {/* Vendor Add Product - Navigate to AddProduct page */}
-          {vendorApproved && (
+          {/* Vendor Add Product - Show for approved vendors OR users with vendor role */}
+          {(vendorApproved || user?.role === "vendor") && (
             <button 
               onClick={handleAddProduct}
               className="add-product-btn"
@@ -135,8 +162,9 @@ export default function Home({ user }) {
               onClick={handleRefresh}
               className="refresh-btn"
               title="Refresh status"
+              disabled={statusLoading}
             >
-              <RefreshCw size={16} />
+              <RefreshCw size={16} className={statusLoading ? "spinning" : ""} />
             </button>
           )}
 
@@ -168,7 +196,7 @@ export default function Home({ user }) {
         ) : (
           <div className="products-grid">
             {products.map((p) => (
-              <ProductCard key={p.id} product={p} user={user} />
+              <ProductCard key={p.id || p._id} product={p} user={user} />
             ))}
           </div>
         )}
