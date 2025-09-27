@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import * as StoreAPI from "../api/StoreAPI";
-import "./ProductCard.css";
+import "./Products.css";
 
 export default function ProductCard({ product, user }) {
   const [showDetails, setShowDetails] = useState(false);
