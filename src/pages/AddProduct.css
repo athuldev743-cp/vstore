@@ -1,69 +1,79 @@
-/* UpdateProduct.css */
-
-.update-product-container {
+/* AddProduct.css */
+.add-product-container {
   max-width: 500px;
-  margin: 40px auto;
-  padding: 25px;
-  border-radius: 10px;
-  background-color: #f8f9fa;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  font-family: Arial, sans-serif;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.update-product-container h3 {
+.add-product-container h3 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
   color: #333;
 }
 
-.update-product-container form {
+.add-product-container form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 1rem;
 }
 
-.update-product-container input[type="text"],
-.update-product-container input[type="number"],
-.update-product-container input[type="file"] {
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 16px;
+.add-product-container input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.add-product-container input:focus {
   outline: none;
-  transition: border 0.2s;
+  border-color: #2563eb;
 }
 
-.update-product-container input[type="text"]:focus,
-.update-product-container input[type="number"]:focus,
-.update-product-container input[type="file"]:focus {
-  border-color: #007bff;
-}
-
-.update-product-container button {
-  padding: 12px;
-  background-color: #007bff;
-  color: #fff;
-  font-size: 16px;
-  font-weight: bold;
+.add-product-container button {
+  padding: 0.75rem;
+  background: #28a745;
+  color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
+  font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
-.update-product-container button:hover {
-  background-color: #0056b3;
+.add-product-container button:hover {
+  background: #218838;
 }
 
-.update-product-container .image-preview {
-  display: flex;
-  justify-content: center;
-  margin-top: 10px;
+.add-product-container button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
 }
 
-.update-product-container .image-preview img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 6px;
+.image-preview {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.image-preview img {
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.add-product-container small {
+  color: #666;
+  font-size: 0.8rem;
+  text-align: center;
+  display: block;
+  margin-top: -0.5rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .add-product-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
 }
