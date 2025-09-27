@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import * as StoreAPI from "../api/StoreAPI";
 import { useNavigate } from "react-router-dom";
 import "./Account.css";
@@ -8,6 +8,21 @@ export default function Account({ onLogout }) {
   const [user, setUser] = useState(null);
   const [vendorProducts, setVendorProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Define handleLogout first so it can be used in useEffect
+  const handleLogout = useCallback(() => {
+    console.log("Logout button clicked");
+    
+    // If onLogout prop is provided, use it
+    if (onLogout && typeof onLogout === "function") {
+      onLogout();
+    } else {
+      // Fallback logout logic
+      console.warn("onLogout prop not provided, using fallback");
+      localStorage.removeItem("token");
+      window.location.href = "/"; // Force redirect
+    }
+  }, [onLogout]); // Add onLogout as dependency
 
   useEffect(() => {
     async function fetchUserData() {
@@ -20,15 +35,19 @@ export default function Account({ onLogout }) {
           setVendorProducts(products);
         }
       } catch (err) {
-        console.error(err);
-        alert("Failed to load account data");
+        console.error("Failed to load account data:", err);
+        alert("Failed to load account data. You may have been logged out.");
+        // Auto-redirect if unauthorized
+        if (err.message.includes("Unauthorized") || err.message.includes("401")) {
+          handleLogout();
+        }
       } finally {
         setLoading(false);
       }
     }
 
     fetchUserData();
-  }, []);
+  }, [handleLogout]); // Add handleLogout to dependencies
 
   if (loading) return <p>Loading account info...</p>;
   if (!user) return <p>User not logged in</p>;
@@ -73,7 +92,24 @@ export default function Account({ onLogout }) {
         </section>
       )}
 
-      <button className="btn-logout" onClick={onLogout}>Logout</button>
+      <button 
+        className="btn-logout" 
+        onClick={handleLogout}
+        style={{marginTop: '20px', padding: '10px 20px'}}
+      >
+        Logout
+      </button>
+      
+      {/* Debug button */}
+      <button 
+        onClick={() => {
+          console.log("Token:", localStorage.getItem("token"));
+          console.log("onLogout function:", onLogout);
+        }}
+        style={{marginLeft: '10px', background: '#f0f0f0', color: '#333'}}
+      >
+        Debug
+      </button>
     </div>
   );
 }

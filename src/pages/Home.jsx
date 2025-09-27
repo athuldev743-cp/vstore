@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import AddProduct from "./AddProduct";
 import ProductCard from "./ProductCard";
-import { User } from "lucide-react"; // account icon
+import { User, RefreshCw } from "lucide-react"; // account icon
 import "./Home.css";
 
 export default function Home({ user }) {
@@ -26,20 +26,43 @@ export default function Home({ user }) {
   }, [user]);
 
   // -------------------------
-  // Fetch vendor approval status
+  // Fetch vendor approval status - FIXED VERSION
   // -------------------------
-  const fetchVendorStatus = useCallback(() => {
-    if (user?.role === "vendor" && user.id) {
-      StoreAPI.getVendorStatus(user.id)
-        .then((res) => {
-          setVendorApproved(res.status?.toLowerCase() === "approved");
-        })
-        .catch(() => setVendorApproved(false));
-    } else setVendorApproved(false);
+  const fetchVendorStatus = useCallback(async () => {
+    if (user?.id) { // Check for ANY user with ID, not just vendors
+      console.log("🔍 Checking vendor status for user:", user.id, "Current role:", user?.role);
+      try {
+        const res = await StoreAPI.getVendorStatus(user.id);
+        console.log("📋 Vendor status response:", res);
+        const isApproved = res.status?.toLowerCase() === "approved";
+        setVendorApproved(isApproved);
+        
+        // Debug logging
+        if (isApproved) {
+          console.log("✅ Vendor is approved - should show Add Product button");
+        } else {
+          console.log("❌ Vendor not approved or pending");
+        }
+      } catch (error) {
+        console.error("❌ Vendor status error:", error);
+        setVendorApproved(false);
+      }
+    } else {
+      setVendorApproved(false);
+    }
   }, [user]);
 
+  // Check vendor status when user changes AND periodically
   useEffect(() => {
-    if (user?.role === "vendor" && user.id) fetchVendorStatus();
+    if (user?.id) {
+      fetchVendorStatus();
+      
+      // Check every 30 seconds for status updates
+      const interval = setInterval(fetchVendorStatus, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setVendorApproved(false);
+    }
   }, [user, fetchVendorStatus]);
 
   // -------------------------
@@ -56,6 +79,15 @@ export default function Home({ user }) {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  // -------------------------
+  // Manual refresh function
+  // -------------------------
+  const handleRefresh = () => {
+    console.log("🔄 Manual refresh triggered");
+    fetchVendorStatus();
+    fetchProducts();
+  };
 
   // -------------------------
   // Render Loading State
@@ -86,17 +118,31 @@ export default function Home({ user }) {
             <button onClick={() => navigate("/auth")}>Sign Up / Login</button>
           )}
 
-          {/* Apply Vendor Button */}
+          {/* Apply Vendor Button - Show if customer AND not approved */}
           {user?.role === "customer" && !vendorApproved && (
             <button onClick={() => navigate("/apply-vendor")}>
               Apply as Vendor
             </button>
           )}
 
-          {/* Vendor Add Product */}
-          {user?.role === "vendor" && vendorApproved && (
-            <button onClick={() => setShowAddProduct(!showAddProduct)}>
+          {/* Vendor Add Product - Show if approved (regardless of current role) */}
+          {vendorApproved && (
+            <button 
+              onClick={() => setShowAddProduct(!showAddProduct)}
+              className="add-product-btn"
+            >
               {showAddProduct ? "➖ Close Add Product" : "➕ Add Product"}
+            </button>
+          )}
+
+          {/* Refresh Button - Show for all logged-in users */}
+          {user && (
+            <button 
+              onClick={handleRefresh}
+              className="refresh-btn"
+              title="Refresh status"
+            >
+              <RefreshCw size={16} />
             </button>
           )}
 
@@ -119,10 +165,20 @@ export default function Home({ user }) {
       </header>
 
       <main className="home-content">
+        {/* Debug info - remove in production */}
+        {user && (
+          <div style={{fontSize: '12px', color: '#666', marginBottom: '10px'}}>
+            Debug: User Role: {user.role} | Vendor Approved: {vendorApproved ? 'Yes' : 'No'}
+          </div>
+        )}
+
         {/* Add Product Component */}
         {showAddProduct && (
           <div className="add-product-container">
-            <AddProduct onProductAdded={fetchProducts} />
+            <AddProduct onProductAdded={() => {
+              fetchProducts();
+              setShowAddProduct(false);
+            }} />
           </div>
         )}
 

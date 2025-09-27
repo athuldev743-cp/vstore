@@ -51,6 +51,7 @@ export const login = async (data) =>
 
 export const getCurrentUser = async () => request("/api/users/me");
 
+  
 
 // -------------------------
 // Store APIs
@@ -65,6 +66,10 @@ export const placeOrder = async (data) =>
 // -------------------------
 export const applyVendor = async (data) =>
   request("/api/store/vendors/apply", { method: "POST", body: JSON.stringify(data) });
+export const refreshToken = (newToken) => {
+  localStorage.setItem('token', newToken); // Update token in storage
+  // You might also want to update your user context/state here
+};
 
 export const getVendorStatus = async (userId) => request(`/api/store/vendors/status/${userId}`);
 export const listVendors = async () => request("/api/store/vendors");
@@ -164,8 +169,18 @@ export const listPendingVendors = async () => {
   }
 };
 
-export const approveVendor = async (vendorId) =>
-  request(`/api/store/vendors/${vendorId}/approve`, { method: "POST" });
+export const approveVendor = async (vendorId) => {
+  const response = await request(`/api/store/vendors/${vendorId}/approve`, { 
+    method: "POST" 
+  });
+  
+  // If backend returns a new token, update it
+  if (response.new_token) {
+    refreshToken(response.new_token);
+  }
+  
+  return response;
+};
 
 export const rejectVendor = async (vendorId) =>
   request(`/api/store/vendors/${vendorId}/reject`, { method: "POST" });

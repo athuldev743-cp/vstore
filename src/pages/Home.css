@@ -69,7 +69,28 @@
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 15px;
 }
+/* Add to Home.css */
+.refresh-btn {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
 
+.refresh-btn:hover {
+  background: #e0e0e0;
+}
+
+.add-product-btn {
+  background: #28a745;
+  color: white;
+}
+
+.add-product-btn:hover {
+  background: #218838;
+}
 /* AddProduct container spacing */
 .add-product-container {
   margin-bottom: 20px;
