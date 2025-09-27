@@ -1,202 +1,112 @@
-/* ---------------------- */
-/* General Home Styles    */
-/* ---------------------- */
 .home-container {
   font-family: Arial, sans-serif;
-  background-color: #f0f4f8;
-  min-height: 100vh;
+  padding: 0;
+  margin: 0;
 }
 
-/* ---------------------- */
-/* Header Styles          */
-/* ---------------------- */
 .home-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 15px 20px;
   background-color: #007bff;
-  color: white;
-  flex-wrap: wrap; /* allow header items to wrap on small screens */
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  flex-wrap: wrap; /* allows buttons to wrap on small screens */
 }
 
 .logo {
-  font-size: 1.5rem;
+  font-size: 24px;
   font-weight: bold;
 }
 
 .header-buttons {
   display: flex;
-  flex-wrap: wrap; /* wrap buttons if they overflow */
-  gap: 8px; /* space between buttons */
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap; /* wrap buttons on mobile */
 }
 
 .header-buttons button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 8px;
-  background-color: white;
+  padding: 8px 12px;
+  background-color: #fff;
   color: #007bff;
-  font-weight: bold;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
-  flex: 1 1 auto; /* allow buttons to shrink/grow */
-  min-width: 80px; /* clickable minimum size */
-  font-size: 14px;
-  text-align: center;
+  font-weight: bold;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .header-buttons button:hover {
-  background-color: #e6e6e6;
-}
-
-/* ---------------------- */
-/* Main Content Styles    */
-/* ---------------------- */
-.home-content {
-  padding: 16px;
-}
-
-.welcome {
-  text-align: center;
-  margin-top: 50px;
-}
-
-/* ---------------------- */
-/* Product List / Vendor List */
-/* ---------------------- */
-.product-list,
-.vendor-list {
-  list-style: none;
-  padding: 0;
-}
-
-.product-card,
-.vendor-card {
-  background-color: white;
-  padding: 12px;
-  margin-bottom: 12px;
-  border-radius: 12px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.product-card:hover,
-.vendor-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
-.product-card button {
-  margin-top: 8px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 8px;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-}
-
-.product-card button:hover {
   background-color: #0056b3;
+  color: #fff;
 }
 
-/* ---------------------- */
-/* Add Product Form       */
-/* ---------------------- */
-.add-product-container {
-  background-color: white;
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  margin-bottom: 16px;
-}
-
-.add-product-container h3 {
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-size: 1.2rem;
-}
-
-.add-product-container form {
+.btn-account {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  background-color: #fff;
+  color: #007bff;
 }
 
-.add-product-container input,
-.add-product-container textarea,
-.add-product-container button {
-  margin-bottom: 12px;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-}
-
-.add-product-container textarea {
-  resize: vertical;
-}
-
-.add-product-container button {
-  background-color: #007bff;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  border: none;
-}
-
-.add-product-container button:hover {
+.btn-account:hover {
   background-color: #0056b3;
+  color: #fff;
 }
 
-.image-preview img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  margin-top: 10px;
+.home-content {
+  padding: 15px 20px;
 }
 
-/* ---------------------- */
-/* Responsive Styles      */
-/* ---------------------- */
-@media (max-width: 600px) {
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+/* AddProduct container spacing */
+.add-product-container {
+  margin-bottom: 20px;
+}
+
+/* ----------------- */
+/* Responsive Styles */
+/* ----------------- */
+@media (max-width: 768px) {
   .home-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
   }
 
   .header-buttons {
-    justify-content: center;
     width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
   }
 
-  .header-buttons button {
-    flex: 1 1 auto;
-    margin-bottom: 8px;
-    font-size: 13px;
-  }
-
-  .add-product-container {
-    padding: 12px;
-  }
-
-  .add-product-container input,
-  .add-product-container textarea,
-  .add-product-container button {
-    font-size: 13px;
-  }
-
-  .image-preview img {
-    width: 80px;
-    height: 80px;
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
 
-/* ---------------------- */
-/* Vendor Card Hover Fix  */
-/* ---------------------- */
-.vendor-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-buttons button {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
 }

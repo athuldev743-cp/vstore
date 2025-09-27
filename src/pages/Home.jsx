@@ -2,10 +2,11 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import AddProduct from "./AddProduct";
-import "./Home.css";
 import ProductCard from "./ProductCard";
+import { User } from "lucide-react"; // account icon
+import "./Home.css";
 
-export default function Home({ user, onLogout }) {
+export default function Home({ user }) {
   const navigate = useNavigate();
 
   const [userLoaded, setUserLoaded] = useState(false);
@@ -15,31 +16,23 @@ export default function Home({ user, onLogout }) {
   const [loadingProducts, setLoadingProducts] = useState(true);
 
   useEffect(() => {
-    if (user !== undefined) {
-      setUserLoaded(true);
-    }
+    if (user !== undefined) setUserLoaded(true);
   }, [user]);
 
   const fetchVendorStatus = useCallback(() => {
     if (user?.role === "vendor" && user.id) {
       StoreAPI.getVendorStatus(user.id)
         .then((res) => {
-          const approved = res.status?.toLowerCase() === "approved";
-          setVendorApproved(approved);
+          setVendorApproved(res.status?.toLowerCase() === "approved");
         })
         .catch(() => setVendorApproved(false));
-    } else {
-      setVendorApproved(false);
-    }
+    } else setVendorApproved(false);
   }, [user]);
 
   useEffect(() => {
-    if (user?.role === "vendor" && user.id) {
-      fetchVendorStatus();
-    }
+    if (user?.role === "vendor" && user.id) fetchVendorStatus();
   }, [user, fetchVendorStatus]);
 
-  // Fetch all products (instead of vendors)
   const fetchProducts = useCallback(() => {
     setLoadingProducts(true);
     StoreAPI.listProducts()
@@ -71,16 +64,30 @@ export default function Home({ user, onLogout }) {
         <h1 className="logo">VStore</h1>
         <div className="header-buttons">
           {!user && <button onClick={() => navigate("/auth")}>Sign Up / Login</button>}
+
           {user?.role === "customer" && !vendorApproved && (
             <button onClick={() => navigate("/apply-vendor")}>Apply as Vendor</button>
           )}
+
           {user?.role === "vendor" && vendorApproved && (
             <button onClick={() => setShowAddProduct(!showAddProduct)}>
               {showAddProduct ? "➖ Close Add Product" : "➕ Add Product"}
             </button>
           )}
-          {user?.role === "admin" && <button onClick={() => navigate("/admin")}>🛠 Admin</button>}
-          {user && <button onClick={onLogout}>Logout</button>}
+
+          {user?.role === "admin" && (
+            <button onClick={() => navigate("/admin")}>🛠 Admin</button>
+          )}
+
+          {user && (
+            <button
+              className="btn-account"
+              onClick={() => navigate("/account")}
+              title="Account"
+            >
+              <User size={20} />
+            </button>
+          )}
         </div>
       </header>
 
