@@ -1,135 +1,118 @@
-/* General Layout */
-body {
-  font-family: Arial, sans-serif;
-  background: #f9fcff; /* very light blue */
-  color: #222;
+/* General */
+body, html {
   margin: 0;
   padding: 0;
+  font-family: "Arial", sans-serif;
+  background-color: #f5f9ff;
+  color: #333;
 }
 
 /* Product Card */
 .product-card {
-  background-color: #f5faff; /* light blue/white layout */
-  color: #000; /* text black/dark for readability */
-  border: 1px solid #d0e6ff; /* subtle light border */
-  border-radius: 8px;
-  padding: 12px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   margin: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* soft shadow */
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s;
 }
-
-
 .product-card:hover {
   transform: scale(1.02);
 }
 .product-thumb img {
   width: 100%;
-  height: 180px;
+  height: 200px;
   object-fit: cover;
-  border-radius: 8px;
+}
+.product-thumb h3 {
+  margin: 10px;
 }
 .price {
-  color: #0077cc; /* light blue text */
+  margin-left: 10px;
   font-weight: bold;
 }
-.stock.in-stock {
-  color: #28a745;
+.stock {
+  margin-left: 10px;
 }
-.stock.out-of-stock {
-  color: #cc0000;
-}
+.in-stock { color: green; }
+.out-of-stock { color: red; }
 
-/* Modal Overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(180, 200, 255, 0.6); /* light bluish transparent */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
+/* Product Details Page */
+.product-details-page {
+  padding: 10px;
 }
-.modal-container {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 4px 10px rgba(0, 120, 255, 0.2);
-  animation: fadeIn 0.2s ease-in;
+.product-details-card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.close-btn {
-  background: #e6f2ff;
-  border: none;
-  border-radius: 50%;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 18px;
-}
-
-/* Large Image */
 .product-image-large {
   width: 100%;
+  max-height: 300px;
+  object-fit: cover;
   border-radius: 10px;
-  margin: 12px 0;
 }
-
-/* Quantity Section */
+.vendor-info {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #555;
+}
+.quantity-section {
+  margin-top: 15px;
+}
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .quantity-controls button {
-  background: #e6f2ff;
+  background-color: #e1f0ff;
   border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 5px 10px;
+  border-radius: 5px;
   cursor: pointer;
 }
 .quantity-controls span {
-  margin: 0 10px;
   font-weight: bold;
 }
-
-/* Buttons */
-.order-btn,
-.login-btn {
-  background: #3399ff;
-  color: #fff;
+.quantity-price {
+  margin-top: 10px;
+  font-weight: bold;
+}
+.order-btn, .login-btn {
+  width: 100%;
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #87cefa;
   border: none;
-  padding: 10px 16px;
-  margin-top: 12px;
-  border-radius: 6px;
+  border-radius: 5px;
+  color: #fff;
+  font-weight: bold;
   cursor: pointer;
 }
-.order-btn:hover,
-.login-btn:hover {
-  background: #1a8cff;
+.login-prompt p {
+  margin: 5px 0;
 }
-
-/* Order Popup */
 .order-popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(200, 220, 255, 0.6);
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.3);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  z-index: 999;
 }
 .order-popup {
-  background: #fff;
+  background-color: #ffffff;
   border-radius: 10px;
-  padding: 18px;
+  padding: 15px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 4px 12px rgba(0, 120, 255, 0.2);
 }
 .popup-buttons {
   display: flex;
@@ -137,13 +120,10 @@ body {
   margin-top: 15px;
 }
 .popup-buttons button {
-  background: #e6f2ff;
+  padding: 8px 15px;
   border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
-}
-.popup-buttons button:last-child {
-  background: #3399ff;
-  color: white;
+  background-color: #87cefa;
+  color: #fff;
 }

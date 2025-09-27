@@ -5,6 +5,9 @@ const API_BASE = process.env.REACT_APP_API_URL || "https://virtual-store-backed.
 // -------------------------
 const getToken = () => localStorage.getItem("token");
 const clearToken = () => localStorage.removeItem("token");
+export const refreshToken = (newToken) => {
+  localStorage.setItem("token", newToken); // Update token in storage
+};
 
 // -------------------------
 // Centralized request
@@ -51,12 +54,11 @@ export const login = async (data) =>
 
 export const getCurrentUser = async () => request("/api/users/me");
 
-  
-
 // -------------------------
 // Store APIs
 // -------------------------
 export const listProducts = async () => request("/api/store/products");
+export const getProductById = async (productId) => request(`/api/store/products/${productId}`);
 export const getOrders = async () => request("/api/store/orders");
 export const placeOrder = async (data) =>
   request("/api/store/orders", { method: "POST", body: JSON.stringify(data) });
@@ -66,10 +68,6 @@ export const placeOrder = async (data) =>
 // -------------------------
 export const applyVendor = async (data) =>
   request("/api/store/vendors/apply", { method: "POST", body: JSON.stringify(data) });
-export const refreshToken = (newToken) => {
-  localStorage.setItem('token', newToken); // Update token in storage
-  // You might also want to update your user context/state here
-};
 
 export const getVendorStatus = async (userId) => request(`/api/store/vendors/status/${userId}`);
 export const listVendors = async () => request("/api/store/vendors");
@@ -83,10 +81,8 @@ export const addProduct = async (formData) => {
   try {
     const res = await fetch(`${API_BASE}/api/store/products`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`, // only Authorization, no Content-Type
-      },
-      body: formData, // FormData automatically sets multipart/form-data
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
     });
 
     let data;
@@ -97,16 +93,13 @@ export const addProduct = async (formData) => {
     }
 
     if (!res.ok) throw new Error(data.detail || `Failed to add product (${res.status})`);
-
     return data;
   } catch (err) {
     console.error("Add Product Error:", err);
     throw err;
   }
 };
-// -------------------------
-// Update Product
-// -------------------------
+
 export const updateProduct = async (productId, formData) => {
   const token = getToken();
   if (!token) throw new Error("Not logged in");
@@ -114,10 +107,8 @@ export const updateProduct = async (productId, formData) => {
   try {
     const res = await fetch(`${API_BASE}/api/store/products/${productId}`, {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`, // only Authorization, no Content-Type
-      },
-      body: formData, // FormData automatically sets multipart/form-data
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
     });
 
     let data;
@@ -128,15 +119,12 @@ export const updateProduct = async (productId, formData) => {
     }
 
     if (!res.ok) throw new Error(data.detail || `Failed to update product (${res.status})`);
-
     return data;
   } catch (err) {
     console.error("Update Product Error:", err);
     throw err;
   }
 };
-
-
 
 // -------------------------
 // Admin Vendor Management
@@ -147,10 +135,7 @@ export const listPendingVendors = async () => {
 
   try {
     const res = await fetch(`${API_BASE}/api/store/vendors/pending`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     });
 
     let data;
@@ -161,7 +146,6 @@ export const listPendingVendors = async () => {
     }
 
     if (!res.ok) throw new Error(data.detail || `Failed: ${res.status}`);
-
     return data;
   } catch (err) {
     console.error("List Pending Vendors Error:", err);
@@ -170,19 +154,10 @@ export const listPendingVendors = async () => {
 };
 
 export const approveVendor = async (vendorId) => {
-  const response = await request(`/api/store/vendors/${vendorId}/approve`, { 
-    method: "POST" 
-  });
-  
-  // If backend returns a new token, update it
-  if (response.new_token) {
-    refreshToken(response.new_token);
-  }
-  
+  const response = await request(`/api/store/vendors/${vendorId}/approve`, { method: "POST" });
+  if (response.new_token) refreshToken(response.new_token);
   return response;
 };
 
 export const rejectVendor = async (vendorId) =>
   request(`/api/store/vendors/${vendorId}/reject`, { method: "POST" });
-
-

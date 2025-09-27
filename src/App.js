@@ -5,14 +5,14 @@ import ApplyVendor from "./pages/ApplyVendor";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AddProduct from "./pages/AddProduct";
-import ProductCard from "./pages/ProductCard";
+import ProductDetailsPage from "./pages/ProductDetails"; // Full-page product details
 import Account from "./pages/Account";
 import UpdatedProduct from "./pages/UpdateProduct";
 import * as StoreAPI from "./api/StoreAPI";
 
 export default function App() {
   const [user, setUser] = useState(null);
-  const navigate = useNavigate(); // Add useNavigate hook
+  const navigate = useNavigate();
 
   const decodeToken = (token) => {
     try {
@@ -76,27 +76,21 @@ export default function App() {
     setUser(currentUser);
   };
 
-  // FIXED: handleLogout function with navigate access
   const handleLogout = () => {
-    console.log("Logging out...");
-    localStorage.removeItem("token"); // Clear token
-    setUser(null); // Clear user state
-    navigate("/"); // Redirect to home
+    localStorage.removeItem("token");
+    setUser(null);
+    navigate("/");
   };
 
   return (
     <Routes>
-      {/* Pass handleLogout to Home */}
-      <Route 
-        path="/" 
-        element={<Home user={user} onLogout={handleLogout} />} 
-      />
-      
+      <Route path="/" element={<Home user={user} onLogout={handleLogout} />} />
+
       <Route
         path="/apply-vendor"
         element={user?.role === "customer" ? <ApplyVendor /> : <Navigate to="/" />}
       />
-      
+
       <Route
         path="/auth"
         element={
@@ -107,29 +101,37 @@ export default function App() {
           )
         }
       />
-      
+
       <Route
         path="/admin"
         element={user?.role === "admin" ? <Admin /> : <Navigate to="/" />}
       />
-      
+
       <Route
         path="/vendor/products"
-        element={user?.role === "vendor" && user.vendorApproved ? <AddProduct /> : <Navigate to="/" />}
+        element={
+          user?.role === "vendor" && user.vendorApproved ? (
+            <AddProduct />
+          ) : (
+            <Navigate to="/" />
+          )
+        }
       />
 
-      {/* FIXED: Pass onLogout to Account component */}
       <Route
         path="/account"
         element={user ? <Account user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />}
       />
-      
+
       <Route
         path="/product/:productId/edit"
         element={user?.role === "vendor" ? <UpdatedProduct user={user} /> : <Navigate to="/" />}
       />
 
-      <Route path="/vendor/:vendorId" element={<ProductCard />} />
+      {/* Mobile-friendly product details page */}
+      <Route path="/products/:productId" element={<ProductDetailsPage user={user} />} />
+
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

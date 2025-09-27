@@ -1,24 +1,23 @@
-import React, { useState } from "react";
-import ProductDetails from "./ProductDetails";
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./Products.css";
 
-export default function ProductCard({ product, user }) {
-  const [showDetails, setShowDetails] = useState(false);
+export default function ProductCard({ product }) {
+  const navigate = useNavigate();
 
+  // Fallback for image
   const getImageUrl = (url) => {
     if (!url) return "/default-product.jpg";
-    if (url.startsWith("http")) return url;
-    if (url.startsWith("/")) return url;
+    if (url.startsWith("http") || url.startsWith("/")) return url;
     return `/${url}`;
   };
 
   return (
-    <div className="product-card">
-      {/* Thumbnail */}
-      <div
-        className="product-thumb"
-        onClick={() => setShowDetails(true)}
-      >
+    <div
+      className="product-card"
+      onClick={() => navigate(`/products/${product.id}`)}
+    >
+      <div className="product-thumb">
         <img
           src={getImageUrl(product.image_url)}
           alt={product.name}
@@ -27,22 +26,11 @@ export default function ProductCard({ product, user }) {
         <h3>{product.name}</h3>
         <p className="price">₹{product.price}/kg</p>
         <p
-          className={`stock ${
-            product.stock <= 0 ? "out-of-stock" : "in-stock"
-          }`}
+          className={`stock ${product.stock <= 0 ? "out-of-stock" : "in-stock"}`}
         >
           {product.stock > 0 ? "In stock" : "Out of stock"}
         </p>
       </div>
-
-      {/* Details Modal */}
-      {showDetails && (
-        <ProductDetails
-          product={product}
-          user={user}
-          onClose={() => setShowDetails(false)}
-        />
-      )}
     </div>
   );
 }
