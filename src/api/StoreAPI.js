@@ -58,7 +58,7 @@ export const signup = async (data) => {
 
 
 export const login = async (data) => {
-  return request("/login", {
+  return request("/api/users/login", {
     method: "POST",
     body: JSON.stringify({
       email: data.email,
