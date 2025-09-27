@@ -50,9 +50,12 @@ export const signup = async (data) => {
       username: data.username,
       email: data.email,
       password: data.password,
+      mobile: data.mobile,   // ✅ added
+      address: data.address, // ✅ added
     }),
   });
 };
+
 
 export const login = async (data) => {
   return request("/api/users/login", {
@@ -113,6 +116,38 @@ export const addProduct = async (formData) => {
     throw err;
   }
 };
+// -------------------------
+// Update Product
+// -------------------------
+export const updateProduct = async (productId, formData) => {
+  const token = getToken();
+  if (!token) throw new Error("Not logged in");
+
+  try {
+    const res = await fetch(`${API_BASE}/api/store/products/${productId}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`, // only Authorization, no Content-Type
+      },
+      body: formData, // FormData automatically sets multipart/form-data
+    });
+
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (!res.ok) throw new Error(data.detail || `Failed to update product (${res.status})`);
+
+    return data;
+  } catch (err) {
+    console.error("Update Product Error:", err);
+    throw err;
+  }
+};
+
 
 
 // -------------------------

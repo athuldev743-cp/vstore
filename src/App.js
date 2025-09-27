@@ -6,7 +6,7 @@ import ApplyVendor from "./pages/ApplyVendor";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AddProduct from "./pages/AddProduct";
-import Products from "./pages/Products";
+import Products from "./pages/ProductCard";
 import * as StoreAPI from "./api/StoreAPI";
 
 export default function App() {

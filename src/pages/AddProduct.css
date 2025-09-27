@@ -1,6 +1,6 @@
-/* AddProduct.css */
+/* UpdateProduct.css */
 
-.add-product-container {
+.update-product-container {
   max-width: 500px;
   margin: 40px auto;
   padding: 25px;
@@ -10,21 +10,21 @@
   font-family: Arial, sans-serif;
 }
 
-.add-product-container h3 {
+.update-product-container h3 {
   text-align: center;
   margin-bottom: 20px;
   color: #333;
 }
 
-.add-product-container form {
+.update-product-container form {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.add-product-container input[type="text"],
-.add-product-container input[type="number"],
-.add-product-container input[type="file"] {
+.update-product-container input[type="text"],
+.update-product-container input[type="number"],
+.update-product-container input[type="file"] {
   padding: 10px 12px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -33,13 +33,13 @@
   transition: border 0.2s;
 }
 
-.add-product-container input[type="text"]:focus,
-.add-product-container input[type="number"]:focus,
-.add-product-container input[type="file"]:focus {
+.update-product-container input[type="text"]:focus,
+.update-product-container input[type="number"]:focus,
+.update-product-container input[type="file"]:focus {
   border-color: #007bff;
 }
 
-.add-product-container button {
+.update-product-container button {
   padding: 12px;
   background-color: #007bff;
   color: #fff;
@@ -51,6 +51,19 @@
   transition: background-color 0.2s;
 }
 
-.add-product-container button:hover {
+.update-product-container button:hover {
   background-color: #0056b3;
+}
+
+.update-product-container .image-preview {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.update-product-container .image-preview img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
 }
