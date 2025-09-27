@@ -42,13 +42,14 @@ export default function ProductCard({ product, user }) {
 
   return (
     <div className="product-card">
-      <img
-        src={product.image_url || "/default-product.jpg"}
-        alt={product.name}
-        onClick={() => setShowDetails(true)}
-        onError={(e) => { e.target.src = "/default-product.jpg"; }}
-      />
-      <h3 onClick={() => setShowDetails(true)}>{product.name}</h3>
+  <img
+    src={product.image_url || "/default-product.jpg"}
+    alt={product.name}
+    onClick={() => setShowDetails(true)}
+    onError={(e) => { e.target.src = "/default-product.jpg"; }}
+  />
+  <h3 onClick={() => setShowDetails(true)}>{product.name}</h3>
+  <p>₹{product.price} / kg</p> {/* optional short info */}
 
       {/* Product Details Popup */}
       {showDetails && (
