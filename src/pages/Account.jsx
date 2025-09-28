@@ -30,50 +30,58 @@ export default function Account({ onLogout }) {
         const res = await StoreAPI.getCurrentUser();
         setUser(res);
 
-        if (res.role === "vendor") {
-          setProductsLoading(true);
-          try {
-            console.log("Fetching vendor products for user:", res.id);
-            
-            // First, get the vendor ID using the user ID
-            const vendors = await StoreAPI.listVendors();
-            console.log("All vendors:", vendors);
-            
-            // Find the vendor that belongs to this user
-            const userVendor = Array.isArray(vendors) 
-              ? vendors.find(vendor => vendor.user_id === res.id)
-              : null;
-            
-            console.log("Found vendor:", userVendor);
-            
-            if (userVendor && userVendor.id) {
-              const products = await StoreAPI.getVendorProducts(userVendor.id);
-              console.log("Vendor products received:", products);
-              
-              // Handle different possible response structures
-              if (Array.isArray(products)) {
-                setVendorProducts(products);
-              } else if (products && Array.isArray(products.data)) {
-                setVendorProducts(products.data);
-              } else if (products && products.products) {
-                setVendorProducts(products.products);
-              } else {
-                console.warn("Unexpected products format:", products);
-                setVendorProducts([]);
-              }
-            } else {
-              console.warn("No vendor found for user:", res.id);
-              setVendorProducts([]);
-              setError("Vendor profile not found");
-            }
-          } catch (productsError) {
-            console.error("Failed to load vendor products:", productsError);
-            setError("Failed to load your products");
-            setVendorProducts([]);
-          } finally {
-            setProductsLoading(false);
-          }
-        }
+       // In your Account component, replace the vendor products section with this:
+if (res.role === "vendor") {
+  setProductsLoading(true);
+  try {
+    console.log("🔍 Fetching vendor products for user ID:", res.id);
+    
+    // First, get all vendors
+    const vendors = await StoreAPI.listVendors();
+    console.log("📋 All vendors from API:", vendors);
+    
+    // Also try to get vendor status
+    try {
+      const vendorStatus = await StoreAPI.getVendorStatus(res.id);
+      console.log("📊 Vendor status:", vendorStatus);
+    } catch (statusError) {
+      console.log("❌ Could not get vendor status:", statusError);
+    }
+    
+    // Find the vendor that belongs to this user
+    const userVendor = Array.isArray(vendors) 
+      ? vendors.find(vendor => {
+          console.log("🔎 Checking vendor:", vendor);
+          console.log("🔎 Vendor user_id:", vendor.user_id, "User ID:", res.id);
+          return vendor.user_id === res.id;
+        })
+      : null;
+    
+    console.log("✅ Found vendor:", userVendor);
+    
+    if (userVendor && userVendor.id) {
+      const products = await StoreAPI.getVendorProducts(userVendor.id);
+      console.log("📦 Vendor products received:", products);
+      
+      if (Array.isArray(products)) {
+        setVendorProducts(products);
+      } else {
+        console.warn("Unexpected products format:", products);
+        setVendorProducts([]);
+      }
+    } else {
+      console.warn("❌ No vendor found in vendors list for user:", res.id);
+      setVendorProducts([]);
+      setError("Vendor profile not found or not approved yet");
+    }
+  } catch (productsError) {
+    console.error("❌ Failed to load vendor products:", productsError);
+    setError("Failed to load your products: " + productsError.message);
+    setVendorProducts([]);
+  } finally {
+    setProductsLoading(false);
+  }
+}
       } catch (err) {
         console.error("Failed to load account data:", err);
         setError("Failed to load account data. You may have been logged out.");

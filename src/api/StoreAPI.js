@@ -125,7 +125,11 @@ export const updateProduct = async (productId, formData) => {
     throw err;
   }
 };
-
+// Add this function to StoreAPI.js
+export const getVendorByUserId = async (userId) => {
+  const vendors = await listVendors();
+  return Array.isArray(vendors) ? vendors.find(v => v.user_id === userId) : null;
+};
 // -------------------------
 // Admin Vendor Management
 // -------------------------
