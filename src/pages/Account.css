@@ -1,348 +1,202 @@
-/* Account.css */
+/* ===== Account.css ===== */
 .account-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  max-width: 900px;
+  margin: 0 auto;
   padding: 1rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", sans-serif;
+  background: #f8fbff;
+  min-height: 100vh;
+  color: #1a2a44;
 }
 
+/* Header */
 .account-header {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1.5rem;
   flex-wrap: wrap;
-  gap: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  gap: 0.75rem;
 }
 
 .account-title {
-  color: white;
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 0;
-}
-
-/* Add Product Button */
-.btn-add-product {
-  background: white;
-  color: #2563eb;
-  border: 2px solid white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  font-size: 1.6rem;
   font-weight: 600;
+  color: #0a3d91;
+}
+
+.btn-add-product {
+  background: #0a74da;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background 0.2s ease;
 }
-
 .btn-add-product:hover {
-  background: #f0f4ff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  background: #095bb5;
 }
 
-/* Sections */
-.profile-section,
-.vendor-products-section {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+/* Profile section */
+.profile-section {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 .section-title {
-  color: #1e293b;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  color: #0a3d91;
 }
 
+.profile-info {
+  display: grid;
+  gap: 0.75rem;
+}
+.profile-info-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+.profile-info-label {
+  font-weight: 600;
+  color: #1a2a44;
+}
+.role-badge {
+  background: #0a74da;
+  color: #fff;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+/* Vendor products */
+.vendor-products-section {
+  margin-bottom: 2rem;
+}
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
+  margin-bottom: 1rem;
 }
-
-.products-count {
-  color: #64748b;
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-/* Profile Info */
-.profile-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.profile-info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.profile-info-label {
-  color: #64748b;
-  font-weight: 500;
-}
-
-.profile-info-value {
-  color: #1e293b;
-  font-weight: 600;
-}
-
-.role-badge {
-  background: #2563eb;
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-}
-
-/* Products Grid */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
 }
-
 .product-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #fff;
   border-radius: 12px;
-  padding: 1.25rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.product-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.product-image {
-  width: 100%;
-  height: 200px;
-  border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.product-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.product-title {
-  color: #1e293b;
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  line-height: 1.3;
-}
-
-.product-details {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
 }
-
-.product-detail {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #e2e8f0;
+.product-image img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
 }
-
-.product-detail-full {
+.product-info {
+  padding: 0.75rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #e2e8f0;
 }
-
-.detail-label {
-  color: #64748b;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.detail-value {
-  color: #1e293b;
+.product-title {
   font-weight: 600;
+  font-size: 1rem;
+  color: #0a3d91;
 }
-
-.product-detail-full .detail-value {
-  font-weight: 400;
+.product-details {
   font-size: 0.9rem;
-  line-height: 1.4;
+  color: #444;
 }
-
-/* Product Actions */
-.product-actions {
+.product-detail {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  justify-content: space-between;
 }
-
+.product-detail-full {
+  margin-top: 0.25rem;
+}
+.product-actions {
+  margin-top: auto;
+}
 .btn-update-property {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
+  width: 100%;
+  background: #0a74da;
+  color: #fff;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 0.5rem;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  flex: 1;
-  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+  transition: background 0.2s;
 }
-
 .btn-update-property:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+  background: #095bb5;
 }
 
-/* Action Buttons */
+/* Action buttons */
 .action-buttons {
   display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 2rem;
+  justify-content: space-between;
+  gap: 0.75rem;
   flex-wrap: wrap;
+  margin-top: 1rem;
 }
-
 .btn-logout {
-  background: #dc2626;
-  color: white;
+  background: #e63946;
+  color: #fff;
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1rem;
   border-radius: 8px;
-  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  flex: 1;
 }
-
-.btn-logout:hover {
-  background: #b91c1c;
-  transform: translateY(-2px);
-}
-
 .btn-debug {
-  background: #6b7280;
-  color: white;
+  background: #999;
+  color: #fff;
   border: none;
-  padding: 0.75rem 1.5rem;
+  padding: 0.6rem 1rem;
   border-radius: 8px;
-  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  flex: 1;
 }
 
-.btn-debug:hover {
-  background: #4b5563;
-  transform: translateY(-2px);
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: #64748b;
-}
-
+/* States */
+.loading-spinner,
+.error-message,
 .empty-state-text {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-}
-
-/* Loading and Error States */
-.loading-spinner {
   text-align: center;
-  padding: 2rem;
-  color: #64748b;
-  font-size: 1.1rem;
+  margin: 1rem 0;
+  color: #555;
 }
-
 .error-message {
-  background: #fef2f2;
-  color: #dc2626;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  border: 1px solid #fecaca;
+  color: #e63946;
+  font-weight: 500;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Mobile responsiveness */
+@media (max-width: 600px) {
   .account-header {
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
   }
-  
-  .account-title {
-    font-size: 1.6rem;
-  }
-  
   .products-grid {
     grid-template-columns: 1fr;
   }
-  
-  .profile-info-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
   .action-buttons {
     flex-direction: column;
   }
-  
-  .btn-add-product {
+  .btn-logout,
+  .btn-debug {
     width: 100%;
-  }
-  
-  .product-actions {
-    flex-direction: column;
-  }
-  
-  .btn-update-property {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .account-container {
-    padding: 0.5rem;
-  }
-  
-  .account-header {
-    padding: 1rem;
-  }
-  
-  .profile-section,
-  .vendor-products-section {
-    padding: 1rem;
-  }
-  
-  .product-card {
-    padding: 1rem;
   }
 }

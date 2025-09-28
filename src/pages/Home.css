@@ -1,25 +1,109 @@
-.home-content {
+/* ===== Home Container ===== */
+.home-container {
+  max-width: 100%;
+  margin: 0 auto;
   padding: 12px;
+  font-family: "Inter", sans-serif;
+  background-color: #f5f8ff; /* light blue background */
+  min-height: 100vh;
 }
 
+/* ===== Header ===== */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #0d47a1;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.header-buttons button {
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #1976d2;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #0d47a1;
+}
+
+.btn-secondary {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+.btn-secondary:hover {
+  background-color: #bbdefb;
+}
+
+.refresh-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}
+
+/* ===== Main Content ===== */
+.home-content {
+  margin-top: 12px;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #0d47a1;
+  margin-bottom: 12px;
+}
+
+.loading-text,
+.no-products {
+  text-align: center;
+  color: #555;
+  margin: 16px 0;
+}
+
+/* ===== Products Grid ===== */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* default: 2 cards per row */
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 
-/* Tablet (>= 768px) → 3 cards */
+/* Desktop/Tablet enhancement */
 @media (min-width: 768px) {
   .products-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
   }
 }
 
-/* Desktop (>= 1024px) → 4 cards */
 @media (min-width: 1024px) {
   .products-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
   }
 }

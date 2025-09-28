@@ -1,194 +1,154 @@
+/* ProductDetails.css - Mobile First */
 .product-details-page {
   padding: 12px;
-  background: #f9f9f9;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  overflow-y: auto; /* scrollable on mobile */
+  background: #f8f9ff;
+  font-family: 'Segoe UI', sans-serif;
+  color: #0d47a1;
 }
 
 .product-details-card {
-  background: #fff;
+  background: #ffffff;
   border-radius: 12px;
   padding: 16px;
-  max-width: 480px; /* centered and mobile-friendly */
-  width: 100%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .back-button {
   background: none;
   border: none;
-  font-size: 14px;
-  color: #007b5e;
+  color: #1976d2;
+  font-size: 1rem;
   cursor: pointer;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
 }
 
 .image-container {
   width: 100%;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
+  margin-bottom: 12px;
 }
 
 .product-image-large {
   width: 100%;
-  max-height: 260px;
+  height: auto;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
-/* Product Info */
 .product-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0;
-  color: #222;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 6px;
 }
 
 .product-description {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.4;
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 12px;
 }
 
 .product-meta {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  margin-bottom: 12px;
 }
 
 .price-tag {
-  font-size: 16px;
-  font-weight: bold;
-  color: #007b5e;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1976d2;
 }
 
 .stock-info {
-  font-size: 13px;
-  color: #444;
+  font-size: 0.9rem;
+  color: #4caf50;
 }
 
 .vendor-info {
-  margin-top: 10px;
+  margin-bottom: 12px;
 }
 
 .vendor-title {
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 600;
 }
 
-.vendor-name {
-  font-size: 13px;
-  color: #222;
-}
-
-.vendor-description {
-  font-size: 12px;
+.vendor-name, .vendor-description {
+  font-size: 0.9rem;
   color: #555;
-  margin-top: 4px;
 }
 
-/* Quantity Section */
 .quantity-section {
-  background: #f7f7f7;
-  padding: 12px;
-  border-radius: 8px;
+  margin-bottom: 12px;
 }
 
 .quantity-input-container {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .quantity-btn {
-  background: #eee;
+  background: #1976d2;
   border: none;
-  padding: 6px 10px;
-  font-size: 18px;
-  font-weight: bold;
+  color: #fff;
+  padding: 6px 12px;
   border-radius: 6px;
+  font-size: 1rem;
   cursor: pointer;
 }
 
-.quantity-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .quantity-display {
+  flex: 1;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 4px;
 }
 
 .quantity-input {
   width: 60px;
-  padding: 4px;
-  font-size: 14px;
   text-align: center;
+  font-size: 1rem;
+  margin: 0 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
 .quantity-unit {
-  font-size: 13px;
+  font-size: 0.9rem;
   color: #555;
 }
 
 .quantity-slider {
   width: 100%;
-  margin: 8px 0;
+  margin-bottom: 8px;
 }
 
 .quantity-price {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  font-weight: 500;
-  margin-top: 6px;
+  text-align: right;
+  font-weight: 600;
+  color: #1976d2;
 }
 
-/* Order Section */
 .order-btn {
   width: 100%;
+  background: #1976d2;
+  color: #fff;
   padding: 12px;
   border-radius: 8px;
-  font-size: 15px;
-  font-weight: bold;
+  font-size: 1rem;
   border: none;
   cursor: pointer;
-  transition: 0.2s;
 }
 
-.order-btn.primary {
-  background: #007b5e;
-  color: #fff;
+.order-btn:hover {
+  background: #0d47a1;
 }
 
-.order-btn.primary:hover {
-  background: #005f46;
-}
-
-.order-btn.out-of-stock {
-  background: #ccc;
-  color: #444;
-}
-
-.login-prompt {
-  text-align: center;
-}
-
-.order-btn.secondary {
-  background: #007b5e;
-  color: #fff;
-  margin-top: 8px;
-}
-
-/* Modal */
+/* Order Popup */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -196,87 +156,99 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  padding: 12px;
 }
 
 .modal-content {
   background: #fff;
   padding: 16px;
-  border-radius: 10px;
-  width: 90%;
+  border-radius: 12px;
+  width: 100%;
   max-width: 400px;
-  max-height: 90vh;
-  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 12px;
+}
+
+.modal-header h2 {
+  font-size: 1.1rem;
+  color: #0d47a1;
 }
 
 .close-btn {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 1.2rem;
   cursor: pointer;
+  color: #1976d2;
 }
 
 .order-summary {
-  margin-top: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
 }
 
 .summary-item {
   display: flex;
   justify-content: space-between;
-  margin: 6px 0;
+  margin-bottom: 6px;
 }
 
 .summary-item.total {
-  font-weight: bold;
+  font-weight: 600;
+  color: #1976d2;
 }
 
 .contact-form .form-group {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  text-align: left;
 }
 
 .contact-form label {
-  font-size: 13px;
-  font-weight: 500;
   display: block;
   margin-bottom: 4px;
+  font-weight: 500;
+  color: #0d47a1;
 }
 
 .contact-form input,
 .contact-form textarea {
   width: 100%;
-  padding: 8px;
-  font-size: 14px;
-  border: 1px solid #ddd;
+  padding: 6px 8px;
   border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 12px;
+.modal-actions button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  margin-top: 8px;
+  cursor: pointer;
 }
 
 .btn-cancel {
-  background: #eee;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
+  background: #ccc;
+  color: #333;
+}
+
+.btn-cancel:hover {
+  background: #999;
 }
 
 .btn-confirm {
-  background: #007b5e;
+  background: #1976d2;
   color: #fff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
+}
+
+.btn-confirm:hover {
+  background: #0d47a1;
 }
