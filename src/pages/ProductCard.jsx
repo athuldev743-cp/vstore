@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./ProductCard.css";
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
+  const [touchStart, setTouchStart] = useState(0);
 
   const getImageUrl = (url) => {
     if (!url) return "/default-product.jpg";
@@ -11,18 +12,27 @@ export default function ProductCard({ product }) {
     return `/${url}`;
   };
 
-  const handleNavigate = () => {
-    // Convert MongoDB _id to string to match backend
-    const productId = product.id ?? product._id?.toString();
-    if (productId) navigate(`/products/${productId}`);
-    else console.warn("No product ID found:", product);
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e) => {
+    const touchEnd = e.changedTouches[0].clientY;
+    if (Math.abs(touchEnd - touchStart) < 5) {
+      const productId = product.id ?? product._id?.toString();
+      if (productId) navigate(`/products/${productId}`);
+    }
   };
 
   return (
     <div
       className="product-card"
-      onClick={handleNavigate}
-      onTouchStart={handleNavigate}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onClick={() => {
+        const productId = product.id ?? product._id?.toString();
+        if (productId) navigate(`/products/${productId}`);
+      }}
     >
       <div className="product-thumb">
         <img
@@ -31,13 +41,10 @@ export default function ProductCard({ product }) {
           onError={(e) => (e.target.src = "/default-product.jpg")}
         />
       </div>
-
       <div className="product-info">
         <h3 className="product-name">{product.name}</h3>
         <p className="price">₹{product.price}/kg</p>
-        <p
-          className={`stock ${product.stock <= 0 ? "out-of-stock" : "in-stock"}`}
-        >
+        <p className={`stock ${product.stock <= 0 ? "out-of-stock" : "in-stock"}`}>
           {product.stock > 0 ? "In stock" : "Out of stock"}
         </p>
       </div>
