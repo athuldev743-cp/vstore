@@ -128,11 +128,7 @@ export default function Home({ user }) {
 
         {(vendorApproved || user?.role === "vendor") && (
           <div className="add-product-container">
-            <button
-              onClick={handleAddProduct}
-              onTouchStart={handleAddProduct}
-              className="add-product-btn"
-            >
+            <button onClick={handleAddProduct} className="add-product-btn">
               ➕ Add Product
             </button>
           </div>
