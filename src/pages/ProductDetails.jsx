@@ -13,33 +13,51 @@ export default function ProductDetails({ user }) {
   const [showOrderSummary, setShowOrderSummary] = useState(false);
   const [ordering, setOrdering] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   // Fetch product & vendor info
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setError("");
         if (!productId) return;
 
-        const data = await StoreAPI.getProductById(productId);
-        setProduct(data);
+        // Fetch product
+        const productData = await StoreAPI.getProductById(productId);
+        setProduct(productData);
 
-        if (data.vendor_id) {
-          const vendors = await StoreAPI.listVendors();
-          const vendor = vendors.find(
-            (v) => v.id === data.vendor_id || v._id === data.vendor_id
-          );
-          setVendorInfo(vendor || null);
+        // Fetch vendor info if vendor_id exists
+        if (productData.vendor_id) {
+          try {
+            const vendors = await StoreAPI.listVendors();
+            // FIX: Compare string IDs properly
+            const vendor = vendors.find(v => 
+              v.id === productData.vendor_id || 
+              v._id === productData.vendor_id ||
+              (v._id && v._id.toString() === productData.vendor_id)
+            );
+            setVendorInfo(vendor || null);
+          } catch (vendorErr) {
+            console.warn("Could not fetch vendor info:", vendorErr);
+            setVendorInfo(null);
+          }
         }
 
+        // Pre-fill user details
         if (user) {
-          const currentUser = await StoreAPI.getCurrentUser();
-          setForm({
-            mobile: currentUser.mobile || "",
-            address: currentUser.address || "",
-          });
+          try {
+            const currentUser = await StoreAPI.getCurrentUser();
+            setForm({
+              mobile: currentUser.mobile || "",
+              address: currentUser.address || "",
+            });
+          } catch (userErr) {
+            console.warn("Could not fetch user details:", userErr);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch product:", err);
+        setError(err.message || "Failed to load product details");
         setProduct(null);
       } finally {
         setLoading(false);
@@ -49,25 +67,40 @@ export default function ProductDetails({ user }) {
     fetchData();
   }, [productId, user]);
 
-  if (loading) return <p>Loading...</p>;
-  if (!product) return <p>Product not found</p>;
+  // FIX: Better quantity controls
+  const incrementQuantity = () => {
+    if (product && product.stock) {
+      setQuantity(prev => Math.min(product.stock, prev + 0.1));
+    }
+  };
 
-  const maxQty = product.stock ? Math.min(product.stock, 20) : 20;
-  const incrementQuantity = () =>
-    setQuantity(Math.min(product.stock, quantity + 0.1));
-  const decrementQuantity = () =>
-    setQuantity(Math.max(0.1, quantity - 0.1));
+  const decrementQuantity = () => {
+    setQuantity(prev => Math.max(0.1, prev - 0.1));
+  };
+
+  const handleQuantityChange = (e) => {
+    const value = parseFloat(e.target.value);
+    if (product && product.stock) {
+      setQuantity(Math.min(product.stock, Math.max(0.1, value)));
+    }
+  };
 
   const confirmOrder = async () => {
+    if (!product) return;
+    
     setOrdering(true);
     try {
+      // FIX: Use consistent product ID
+      const productIdToUse = product.id || product._id;
+      
       const res = await StoreAPI.placeOrder({
-        product_id: product.id ?? product._id?.toString(),
-        quantity,
+        product_id: productIdToUse,
+        quantity: quantity,
         mobile: form.mobile,
         address: form.address,
       });
-      alert(`✅ Order placed!\nRemaining stock: ${res.remaining_stock} kg`);
+      
+      alert(`✅ Order placed!\nRemaining stock: ${res.remaining_stock} kg\nVendor notified: ${res.vendor_notified ? 'Yes' : 'No'}`);
       setShowOrderSummary(false);
       navigate("/"); // redirect home
     } catch (err) {
@@ -76,6 +109,12 @@ export default function ProductDetails({ user }) {
       setOrdering(false);
     }
   };
+
+  if (loading) return <div className="loading">Loading product details...</div>;
+  if (error) return <div className="error">Error: {error}</div>;
+  if (!product) return <div className="error">Product not found</div>;
+
+  const maxQty = product.stock ? Math.min(product.stock, 20) : 20;
 
   return (
     <div className="product-details-page">
@@ -92,12 +131,16 @@ export default function ProductDetails({ user }) {
           {product.description || "No description available"}
         </p>
 
+        {/* Product price and stock */}
+        <div className="product-meta">
+          <p className="price">₹{product.price} per kg</p>
+          <p className="stock">Stock: {product.stock} kg available</p>
+        </div>
+
         {vendorInfo && (
           <div className="vendor-info">
-            <h4>
-              Sold by: {vendorInfo.shop_name || vendorInfo.username || "Vendor"}
-            </h4>
-            {vendorInfo.address && <p>📍 {vendorInfo.address}</p>}
+            <h4>Sold by: {vendorInfo.shop_name || "Vendor"}</h4>
+            {vendorInfo.description && <p>{vendorInfo.description}</p>}
           </div>
         )}
 
@@ -109,7 +152,7 @@ export default function ProductDetails({ user }) {
               −
             </button>
             <span>{quantity.toFixed(1)} kg</span>
-            <button onClick={incrementQuantity} disabled={quantity >= product.stock}>
+            <button onClick={incrementQuantity} disabled={quantity >= maxQty}>
               +
             </button>
           </div>
@@ -119,7 +162,7 @@ export default function ProductDetails({ user }) {
             max={maxQty}
             step="0.1"
             value={quantity}
-            onChange={(e) => setQuantity(parseFloat(e.target.value))}
+            onChange={handleQuantityChange}
           />
           <div className="quantity-price">
             Total: <strong>₹{(product.price * quantity).toFixed(2)}</strong>
@@ -127,66 +170,77 @@ export default function ProductDetails({ user }) {
         </div>
 
         {/* Order button */}
-        {user && product.stock > 0 ? (
-          <button
-            className="order-btn"
-            onClick={() => setShowOrderSummary(true)}
-            disabled={ordering}
-          >
-            Order Now - ₹{(product.price * quantity).toFixed(2)}
-          </button>
-        ) : !user ? (
+        {user ? (
+          product.stock > 0 ? (
+            <button
+              className="order-btn"
+              onClick={() => setShowOrderSummary(true)}
+              disabled={ordering}
+            >
+              {ordering ? "Processing..." : `Order Now - ₹${(product.price * quantity).toFixed(2)}`}
+            </button>
+          ) : (
+            <button className="order-btn out-of-stock" disabled>
+              Out of Stock
+            </button>
+          )
+        ) : (
           <div className="login-prompt">
-            <p>Please log in to order</p>
+            <p>Please log in to place an order</p>
             <button className="login-btn" onClick={() => navigate("/auth")}>
               Login
             </button>
           </div>
-        ) : (
-          <button className="order-btn" disabled>
-            Out of Stock
-          </button>
         )}
 
         {/* Order summary popup */}
         {showOrderSummary && (
-          <div
-            className="order-popup-overlay"
-            onClick={() => !ordering && setShowOrderSummary(false)}
-          >
+          <div className="order-popup-overlay" onClick={() => !ordering && setShowOrderSummary(false)}>
             <div className="order-popup" onClick={(e) => e.stopPropagation()}>
-              <h3>Order Summary</h3>
-              <p>
-                <strong>Product:</strong> {product.name}
-              </p>
-              <p>
-                <strong>Quantity:</strong> {quantity.toFixed(1)} kg
-              </p>
-              <p>
-                <strong>Total:</strong> ₹{(product.price * quantity).toFixed(2)}
-              </p>
-              <p>
-                <strong>Mobile:</strong>{" "}
-                <input
-                  type="text"
-                  value={form.mobile}
-                  onChange={(e) => setForm({ ...form, mobile: e.target.value })}
-                />
-              </p>
-              <p>
-                <strong>Address:</strong>{" "}
-                <input
-                  type="text"
-                  value={form.address}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
-                />
-              </p>
+              <h3>Confirm Your Order</h3>
+              
+              <div className="order-details">
+                <p><strong>Product:</strong> {product.name}</p>
+                <p><strong>Quantity:</strong> {quantity.toFixed(1)} kg</p>
+                <p><strong>Price per kg:</strong> ₹{product.price}</p>
+                <p><strong>Total Amount:</strong> ₹{(product.price * quantity).toFixed(2)}</p>
+              </div>
+
+              <div className="contact-details">
+                <label>
+                  <strong>Mobile Number:</strong>
+                  <input
+                    type="text"
+                    placeholder="Your mobile number"
+                    value={form.mobile}
+                    onChange={(e) => setForm({ ...form, mobile: e.target.value })}
+                  />
+                </label>
+                <label>
+                  <strong>Delivery Address:</strong>
+                  <textarea
+                    placeholder="Your complete address"
+                    value={form.address}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    rows="3"
+                  />
+                </label>
+              </div>
+
               <div className="popup-buttons">
-                <button onClick={() => setShowOrderSummary(false)} disabled={ordering}>
+                <button 
+                  className="cancel-btn" 
+                  onClick={() => setShowOrderSummary(false)} 
+                  disabled={ordering}
+                >
                   Cancel
                 </button>
-                <button onClick={confirmOrder} disabled={ordering}>
-                  {ordering ? "Processing..." : "Confirm Order"}
+                <button 
+                  className="confirm-btn" 
+                  onClick={confirmOrder} 
+                  disabled={ordering || !form.mobile || !form.address}
+                >
+                  {ordering ? "Placing Order..." : "Confirm Order"}
                 </button>
               </div>
             </div>
