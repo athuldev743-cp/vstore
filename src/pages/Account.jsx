@@ -40,42 +40,55 @@ if (res.role === "vendor") {
     const vendors = await StoreAPI.listVendors();
     console.log("📋 All vendors from API:", vendors);
     
-    // Also try to get vendor status
-    try {
-      const vendorStatus = await StoreAPI.getVendorStatus(res.id);
-      console.log("📊 Vendor status:", vendorStatus);
-    } catch (statusError) {
-      console.log("❌ Could not get vendor status:", statusError);
+    // Debug: Check the exact structure of the first vendor
+    if (vendors.length > 0) {
+      console.log("🔎 First vendor object:", vendors[0]);
+      console.log("🔎 First vendor keys:", Object.keys(vendors[0]));
+      console.log("🔎 First vendor values:", JSON.stringify(vendors[0], null, 2));
     }
     
     // Find the vendor that belongs to this user
-    // Replace the vendor finding section with this:
-const userVendor = Array.isArray(vendors) 
-  ? vendors.find(vendor => {
-      // Check all possible ID fields
-      if (vendor.user_id === res.id) return true;
-      if (vendor.userId === res.id) return true;
-      if (vendor.owner_id === res.id) return true;
-      if (vendor.vendor_id === res.id) return true;
-      
-      // If vendor ID itself matches user ID (sometimes they're the same)
-      if (vendor.id === res.id) return true;
-      
-      return false;
-    })
-  : null;
-
-console.log("✅ Found vendor:", userVendor);
-
-if (!userVendor) {
-  // If no vendor found, try using the first vendor as fallback for testing
-  console.log("⚠️ No vendor found, using first vendor for testing");
-  setVendorProducts([]);
-  setError("Vendor profile connection issue - contact support");
-  return;
-}
+    let userVendor = null;
+    
+    if (Array.isArray(vendors)) {
+      // Try different field names that might contain the user ID
+      userVendor = vendors.find(vendor => {
+        // Check all possible field names that might contain user ID
+        const possibleFields = ['user_id', 'userId', 'user', 'owner_id', 'owner', 'userID'];
+        
+        for (let field of possibleFields) {
+          if (vendor[field] === res.id) {
+            console.log(`✅ Found matching field: ${field} = ${vendor[field]}`);
+            return true;
+          }
+        }
+        
+        // If no field matches, maybe the vendor ID itself is the user ID?
+        if (vendor.id === res.id) {
+          console.log("✅ Vendor ID matches user ID");
+          return true;
+        }
+        
+        return false;
+      });
+    }
     
     console.log("✅ Found vendor:", userVendor);
+    
+    // If no vendor found, let's try a different approach
+    if (!userVendor && vendors.length > 0) {
+      console.log("⚠️ No vendor found with user ID matching, trying alternative approaches...");
+      
+      // Approach 1: Maybe the first vendor is the one we want?
+      userVendor = vendors[0];
+      console.log("🧪 Trying first vendor:", userVendor);
+      
+      // Approach 2: Check if there's any vendor with a user_id field at all
+      const vendorWithUserId = vendors.find(v => v.user_id);
+      if (vendorWithUserId) {
+        console.log("🔍 Found vendor with user_id field:", vendorWithUserId.user_id);
+      }
+    }
     
     if (userVendor && userVendor.id) {
       const products = await StoreAPI.getVendorProducts(userVendor.id);
@@ -88,9 +101,9 @@ if (!userVendor) {
         setVendorProducts([]);
       }
     } else {
-      console.warn("❌ No vendor found in vendors list for user:", res.id);
+      console.warn("❌ Still no vendor found");
       setVendorProducts([]);
-      setError("Vendor profile not found or not approved yet");
+      setError("Vendor profile not found. Please contact support.");
     }
   } catch (productsError) {
     console.error("❌ Failed to load vendor products:", productsError);
