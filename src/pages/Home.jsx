@@ -14,26 +14,19 @@ export default function Home({ user }) {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [statusLoading, setStatusLoading] = useState(false);
 
-  // Mark user as loaded
   useEffect(() => {
     if (user !== undefined) setUserLoaded(true);
   }, [user]);
 
-  // Fetch vendor approval status
   const fetchVendorStatus = useCallback(async () => {
     if (!user || user.role !== "customer") {
       setVendorApproved(false);
       return;
     }
-
     setStatusLoading(true);
     try {
       const userId = user.id || user._id || user.userId;
-      if (!userId) {
-        setVendorApproved(false);
-        return;
-      }
-
+      if (!userId) return setVendorApproved(false);
       const res = await StoreAPI.getVendorStatus(userId);
       setVendorApproved(res.status?.toLowerCase() === "approved");
     } catch (error) {
@@ -52,7 +45,6 @@ export default function Home({ user }) {
     }
   }, [user, fetchVendorStatus]);
 
-  // Fetch products
   const fetchProducts = useCallback(() => {
     setLoadingProducts(true);
     StoreAPI.listProducts()
@@ -68,7 +60,6 @@ export default function Home({ user }) {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Manual refresh
   const handleRefresh = () => {
     if (user?.role === "customer") fetchVendorStatus();
     fetchProducts();
@@ -93,7 +84,11 @@ export default function Home({ user }) {
         <h1 className="logo">VStore</h1>
 
         <div className="header-buttons">
-          {!user && <button className="btn-primary" onClick={() => navigate("/auth")}>Sign Up / Login</button>}
+          {!user && (
+            <button className="btn-primary" onClick={() => navigate("/auth")}>
+              Sign Up / Login
+            </button>
+          )}
 
           {user?.role === "customer" && !vendorApproved && (
             <button className="btn-secondary" onClick={() => navigate("/apply-vendor")}>
@@ -113,7 +108,9 @@ export default function Home({ user }) {
           )}
 
           {user?.role === "admin" && (
-            <button className="btn-admin" onClick={() => navigate("/admin")}>Admin Panel</button>
+            <button className="btn-admin" onClick={() => navigate("/admin")}>
+              Admin Panel
+            </button>
           )}
 
           {user && (

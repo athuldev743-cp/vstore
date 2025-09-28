@@ -11,11 +11,20 @@ export default function ProductCard({ product }) {
     return `/${url}`;
   };
 
+  const handleNavigate = () => {
+    const productId = product.id ?? product._id; // safe check
+    if (productId) {
+      navigate(`/products/${productId}`);
+    } else {
+      console.warn("No product ID found for navigation:", product);
+    }
+  };
+
   return (
     <div
       className="product-card"
-      onClick={() => navigate(`/products/${product.id}`)}
-      onTouchStart={() => navigate(`/products/${product.id}`)}
+      onClick={handleNavigate}
+      onTouchStart={handleNavigate}
     >
       <div className="product-thumb">
         <img
@@ -23,9 +32,14 @@ export default function ProductCard({ product }) {
           alt={product.name}
           onError={(e) => (e.target.src = "/default-product.jpg")}
         />
+      </div>
+
+      <div className="product-info">
         <h3 className="product-name">{product.name}</h3>
         <p className="price">₹{product.price}/kg</p>
-        <p className={`stock ${product.stock <= 0 ? "out-of-stock" : "in-stock"}`}>
+        <p
+          className={`stock ${product.stock <= 0 ? "out-of-stock" : "in-stock"}`}
+        >
           {product.stock > 0 ? "In stock" : "Out of stock"}
         </p>
       </div>
