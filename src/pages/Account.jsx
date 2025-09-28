@@ -30,33 +30,32 @@ export default function Account({ onLogout }) {
         const res = await StoreAPI.getCurrentUser();
         setUser(res);
 
-       // In your Account component, replace the vendor products section with this:
-if (res.role === "vendor") {
-  setProductsLoading(true);
-  try {
-    console.log("🔍 User is vendor, fetching products...");
-    
-    // TEMPORARY: Get all products until backend endpoint is ready
-    const allProducts = await StoreAPI.listProducts();
-    console.log("📦 Products loaded:", allProducts);
-    
-    // For now, show all products (or filter them if you can identify user's products)
-    setVendorProducts(Array.isArray(allProducts) ? allProducts : []);
-    
-  } catch (error) {
-    console.error("❌ Error loading products:", error);
-    
-    // If the endpoint doesn't exist, use a fallback
-    if (error.message.includes("404") || error.message.includes("Not Found")) {
-      setError("Vendor features coming soon. Backend update required.");
-    } else {
-      setError("Failed to load products: " + error.message);
-    }
-    setVendorProducts([]);
-  } finally {
-    setProductsLoading(false);
-  }
-}
+        if (res.role === "vendor") {
+          setProductsLoading(true);
+          try {
+            console.log("🔍 User is vendor, fetching products...");
+            
+            // TEMPORARY: Get all products until backend endpoint is ready
+            const allProducts = await StoreAPI.listProducts();
+            console.log("📦 Products loaded:", allProducts);
+            
+            // For now, show all products (or filter them if you can identify user's products)
+            setVendorProducts(Array.isArray(allProducts) ? allProducts : []);
+            
+          } catch (error) {
+            console.error("❌ Error loading products:", error);
+            
+            // If the endpoint doesn't exist, use a fallback
+            if (error.message.includes("404") || error.message.includes("Not Found")) {
+              setError("Vendor features coming soon. Backend update required.");
+            } else {
+              setError("Failed to load products: " + error.message);
+            }
+            setVendorProducts([]);
+          } finally {
+            setProductsLoading(false);
+          }
+        }
       } catch (err) {
         console.error("Failed to load account data:", err);
         setError("Failed to load account data. You may have been logged out.");
@@ -72,9 +71,12 @@ if (res.role === "vendor") {
     fetchUserData();
   }, [handleLogout]);
 
-  // Function to handle update property navigation
+  // Function to handle update property navigation - FIXED ROUTE
   const handleUpdateProperty = (product) => {
-    navigate("/update-property", { 
+    console.log("🔄 Navigating to update product:", product.id);
+    
+    // Use the correct route that matches App.js
+    navigate(`/product/${product.id}/edit`, { 
       state: { product } 
     });
   };
