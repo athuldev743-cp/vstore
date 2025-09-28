@@ -49,13 +49,31 @@ if (res.role === "vendor") {
     }
     
     // Find the vendor that belongs to this user
-    const userVendor = Array.isArray(vendors) 
-      ? vendors.find(vendor => {
-          console.log("🔎 Checking vendor:", vendor);
-          console.log("🔎 Vendor user_id:", vendor.user_id, "User ID:", res.id);
-          return vendor.user_id === res.id;
-        })
-      : null;
+    // Replace the vendor finding section with this:
+const userVendor = Array.isArray(vendors) 
+  ? vendors.find(vendor => {
+      // Check all possible ID fields
+      if (vendor.user_id === res.id) return true;
+      if (vendor.userId === res.id) return true;
+      if (vendor.owner_id === res.id) return true;
+      if (vendor.vendor_id === res.id) return true;
+      
+      // If vendor ID itself matches user ID (sometimes they're the same)
+      if (vendor.id === res.id) return true;
+      
+      return false;
+    })
+  : null;
+
+console.log("✅ Found vendor:", userVendor);
+
+if (!userVendor) {
+  // If no vendor found, try using the first vendor as fallback for testing
+  console.log("⚠️ No vendor found, using first vendor for testing");
+  setVendorProducts([]);
+  setError("Vendor profile connection issue - contact support");
+  return;
+}
     
     console.log("✅ Found vendor:", userVendor);
     
