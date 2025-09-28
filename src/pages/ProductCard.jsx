@@ -12,12 +12,10 @@ export default function ProductCard({ product }) {
   };
 
   const handleNavigate = () => {
-    const productId = product.id ?? product._id; // safe check
-    if (productId) {
-      navigate(`/products/${productId}`);
-    } else {
-      console.warn("No product ID found for navigation:", product);
-    }
+    // Convert MongoDB _id to string to match backend
+    const productId = product.id ?? product._id?.toString();
+    if (productId) navigate(`/products/${productId}`);
+    else console.warn("No product ID found:", product);
   };
 
   return (

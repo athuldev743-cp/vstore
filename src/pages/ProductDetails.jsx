@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
-import "./ProductDetails.CSS";
+import "./ProductDetails.css";
 
 export default function ProductDetails({ user }) {
   const { productId } = useParams();
@@ -14,10 +14,12 @@ export default function ProductDetails({ user }) {
   const [ordering, setOrdering] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Fetch product and vendor info
+  // Fetch product & vendor info
   useEffect(() => {
     const fetchData = async () => {
       try {
+        if (!productId) return;
+
         const data = await StoreAPI.getProductById(productId);
         setProduct(data);
 
@@ -38,6 +40,7 @@ export default function ProductDetails({ user }) {
         }
       } catch (err) {
         console.error("Failed to fetch product:", err);
+        setProduct(null);
       } finally {
         setLoading(false);
       }
@@ -50,7 +53,6 @@ export default function ProductDetails({ user }) {
   if (!product) return <p>Product not found</p>;
 
   const maxQty = product.stock ? Math.min(product.stock, 20) : 20;
-
   const incrementQuantity = () =>
     setQuantity(Math.min(product.stock, quantity + 0.1));
   const decrementQuantity = () =>
@@ -60,14 +62,14 @@ export default function ProductDetails({ user }) {
     setOrdering(true);
     try {
       const res = await StoreAPI.placeOrder({
-        product_id: product.id,
+        product_id: product.id ?? product._id?.toString(),
         quantity,
         mobile: form.mobile,
         address: form.address,
       });
       alert(`✅ Order placed!\nRemaining stock: ${res.remaining_stock} kg`);
       setShowOrderSummary(false);
-      navigate("/"); // Redirect after order
+      navigate("/"); // redirect home
     } catch (err) {
       alert(err.message || "Failed to place order");
     } finally {
@@ -82,7 +84,6 @@ export default function ProductDetails({ user }) {
           src={product.image_url || "/default-product.jpg"}
           alt={product.name}
           className="product-image-large"
-          loading="lazy"
           onError={(e) => (e.target.src = "/default-product.jpg")}
         />
 
@@ -94,13 +95,13 @@ export default function ProductDetails({ user }) {
         {vendorInfo && (
           <div className="vendor-info">
             <h4>
-              Sold by: {vendorInfo.business_name || vendorInfo.username || "Vendor"}
+              Sold by: {vendorInfo.shop_name || vendorInfo.username || "Vendor"}
             </h4>
             {vendorInfo.address && <p>📍 {vendorInfo.address}</p>}
           </div>
         )}
 
-        {/* Quantity Selector */}
+        {/* Quantity selector */}
         <div className="quantity-section">
           <label>Select Quantity (kg)</label>
           <div className="quantity-controls">
@@ -108,10 +109,7 @@ export default function ProductDetails({ user }) {
               −
             </button>
             <span>{quantity.toFixed(1)} kg</span>
-            <button
-              onClick={incrementQuantity}
-              disabled={quantity >= product.stock}
-            >
+            <button onClick={incrementQuantity} disabled={quantity >= product.stock}>
               +
             </button>
           </div>
@@ -128,7 +126,7 @@ export default function ProductDetails({ user }) {
           </div>
         </div>
 
-        {/* Order Button */}
+        {/* Order button */}
         {user && product.stock > 0 ? (
           <button
             className="order-btn"
@@ -140,10 +138,7 @@ export default function ProductDetails({ user }) {
         ) : !user ? (
           <div className="login-prompt">
             <p>Please log in to order</p>
-            <button
-              className="login-btn"
-              onClick={() => navigate("/auth")}
-            >
+            <button className="login-btn" onClick={() => navigate("/auth")}>
               Login
             </button>
           </div>
@@ -153,7 +148,7 @@ export default function ProductDetails({ user }) {
           </button>
         )}
 
-        {/* Order Summary Popup */}
+        {/* Order summary popup */}
         {showOrderSummary && (
           <div
             className="order-popup-overlay"
@@ -187,10 +182,7 @@ export default function ProductDetails({ user }) {
                 />
               </p>
               <div className="popup-buttons">
-                <button
-                  onClick={() => setShowOrderSummary(false)}
-                  disabled={ordering}
-                >
+                <button onClick={() => setShowOrderSummary(false)} disabled={ordering}>
                   Cancel
                 </button>
                 <button onClick={confirmOrder} disabled={ordering}>
