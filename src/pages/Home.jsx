@@ -74,11 +74,6 @@ export default function Home({ user }) {
     fetchProducts();
   };
 
-  // Navigate to Add Product
-  const handleAddProduct = () => {
-    navigate("/vendor/products");
-  };
-
   if (!userLoaded) {
     return (
       <div className="home-container">
@@ -98,10 +93,10 @@ export default function Home({ user }) {
         <h1 className="logo">VStore</h1>
 
         <div className="header-buttons">
-          {!user && <button onClick={() => navigate("/auth")}>Sign Up / Login</button>}
+          {!user && <button className="btn-primary" onClick={() => navigate("/auth")}>Sign Up / Login</button>}
 
           {user?.role === "customer" && !vendorApproved && (
-            <button onClick={() => navigate("/apply-vendor")}>
+            <button className="btn-secondary" onClick={() => navigate("/apply-vendor")}>
               {statusLoading ? "Checking..." : "Apply as Vendor"}
             </button>
           )}
@@ -117,7 +112,9 @@ export default function Home({ user }) {
             </button>
           )}
 
-          {user?.role === "admin" && <button onClick={() => navigate("/admin")}>🛠 Admin</button>}
+          {user?.role === "admin" && (
+            <button className="btn-admin" onClick={() => navigate("/admin")}>Admin Panel</button>
+          )}
 
           {user && (
             <button className="btn-account" onClick={() => navigate("/account")} title="Account">
@@ -125,22 +122,14 @@ export default function Home({ user }) {
             </button>
           )}
         </div>
-
-        {(vendorApproved || user?.role === "vendor") && (
-          <div className="add-product-container">
-            <button onClick={handleAddProduct} className="add-product-btn">
-              ➕ Add Product
-            </button>
-          </div>
-        )}
       </header>
 
       <main className="home-content">
-        <h2>Products</h2>
+        <h2 className="section-title">Products</h2>
         {loadingProducts ? (
-          <p>Loading products...</p>
+          <p className="loading-text">Loading products...</p>
         ) : products.length === 0 ? (
-          <p>No products available.</p>
+          <p className="no-products">No products available.</p>
         ) : (
           <div className="products-grid">
             {products.map((p) => (

@@ -70,22 +70,50 @@ export default function Account({ onLogout }) {
     fetchUserData();
   }, [handleLogout]);
 
-  if (loading) return <p>Loading account info...</p>;
-  if (!user) return <p>User not logged in</p>;
+  // Function to handle update property navigation
+  const handleUpdateProperty = (product) => {
+    navigate("/update-property", { 
+      state: { product } 
+    });
+  };
+
+  if (loading) return (
+    <div className="account-container">
+      <div className="loading-spinner">Loading account info...</div>
+    </div>
+  );
+  
+  if (!user) return (
+    <div className="account-container">
+      <div className="error-message">User not logged in</div>
+    </div>
+  );
 
   return (
     <div className="account-container">
-      <h1>Account Details</h1>
+      <header className="account-header">
+        <h1 className="account-title">Account Details</h1>
+        
+        {/* Add Product Button - Only for Vendors */}
+        {user.role === "vendor" && (
+          <button 
+            className="btn-add-product"
+            onClick={() => navigate("/vendor/products")}
+          >
+            ➕ Add Product
+          </button>
+        )}
+      </header>
 
       {error && (
-        <div className="error-message" style={{color: 'red', marginBottom: '20px'}}>
+        <div className="error-message">
           {error}
         </div>
       )}
 
       {/* Profile Info */}
       <section className="profile-section">
-        <h2>Profile</h2>
+        <h2 className="section-title">Profile Information</h2>
         <div className="profile-info">
           <div className="profile-info-item">
             <span className="profile-info-label">Username</span>
@@ -109,86 +137,93 @@ export default function Account({ onLogout }) {
           )}
           <div className="profile-info-item">
             <span className="profile-info-label">Role</span>
-            <span className="profile-info-value">{user.role}</span>
+            <span className="profile-info-value role-badge">{user.role}</span>
           </div>
         </div>
       </section>
 
-      {/* Vendor Products */}
+      {/* Vendor Products Section */}
       {user.role === "vendor" && (
         <section className="vendor-products-section">
-          <h2>Your Uploaded Products</h2>
+          <div className="section-header">
+            <h2 className="section-title">Your Products</h2>
+            <span className="products-count">({vendorProducts.length} products)</span>
+          </div>
           
           {productsLoading ? (
-            <p>Loading your products...</p>
+            <div className="loading-spinner">Loading your products...</div>
           ) : error ? (
-            <p style={{color: 'red'}}>{error}</p>
+            <div className="error-message">{error}</div>
           ) : vendorProducts.length === 0 ? (
-            <div>
-              <p>No products uploaded yet.</p>
-              <button 
-                className="btn-add-product"
-                onClick={() => navigate("/add-product")}
-                style={{marginTop: '10px', padding: '8px 16px'}}
-              >
-                Add Your First Product
-              </button>
+            <div className="empty-state">
+              <p className="empty-state-text">No products uploaded yet.</p>
             </div>
           ) : (
-            <div>
-              <p><strong>Total Products: {vendorProducts.length}</strong></p>
-              <ul className="product-list">
-                {vendorProducts.map((product) => (
-                  <li key={product.id || product._id} className="product-card">
-                    <div className="product-card-header">
-                      <h3 className="product-card-title">{product.name}</h3>
+            <div className="products-grid">
+              {vendorProducts.map((product) => (
+                <div key={product.id || product._id} className="product-card">
+                  {product.image && (
+                    <div className="product-image">
+                      <img src={product.image} alt={product.name} />
                     </div>
-                    <div className="product-card-details">
-                      <div className="product-card-detail">
-                        <span className="product-card-label">Price</span>
-                        <span className="product-card-value">₹{product.price}</span>
+                  )}
+                  <div className="product-info">
+                    <h3 className="product-title">{product.name}</h3>
+                    <div className="product-details">
+                      <div className="product-detail">
+                        <span className="detail-label">Price:</span>
+                        <span className="detail-value">₹{product.price}</span>
                       </div>
-                      <div className="product-card-detail">
-                        <span className="product-card-label">Stock</span>
-                        <span className="product-card-value">{product.stock} kg</span>
+                      <div className="product-detail">
+                        <span className="detail-label">Stock:</span>
+                        <span className="detail-value">{product.stock} kg</span>
                       </div>
+                      {product.category && (
+                        <div className="product-detail">
+                          <span className="detail-label">Category:</span>
+                          <span className="detail-value">{product.category}</span>
+                        </div>
+                      )}
+                      {product.description && (
+                        <div className="product-detail-full">
+                          <span className="detail-label">Description:</span>
+                          <span className="detail-value">{product.description}</span>
+                        </div>
+                      )}
                     </div>
-                    <button
-                      className="btn-update"
-                      onClick={() => navigate(`/update-product/${product.id || product._id}`)}
-                    >
-                      Update Product
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                    <div className="product-actions">
+                      <button
+                        className="btn-update-property"
+                        onClick={() => handleUpdateProperty(product)}
+                      >
+                        Update Property
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </section>
       )}
 
-      <button 
-        className="btn-logout" 
-        onClick={handleLogout}
-        style={{marginTop: '20px', padding: '10px 20px'}}
-      >
-        Logout
-      </button>
-      
-      {/* Enhanced debug button */}
-      <button 
-        onClick={() => {
+      <div className="action-buttons">
+        <button className="btn-logout" onClick={handleLogout}>
+          Logout
+        </button>
+        
+        {/* Enhanced debug button */}
+        <button className="btn-debug" onClick={() => {
           console.log("=== DEBUG INFO ===");
           console.log("Token:", localStorage.getItem("token"));
           console.log("User:", user);
           console.log("Vendor Products:", vendorProducts);
           console.log("User ID:", user?.id);
           console.log("User Role:", user?.role);
-        }}
-        style={{marginLeft: '10px', background: '#f0f0f0', color: '#333'}}
-      >
-        Debug Info
-      </button>
+        }}>
+          Debug Info
+        </button>
+      </div>
     </div>
   );
 }
