@@ -96,38 +96,51 @@ export default function UpdateProduct() {
   };
 
   const handleUpdate = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.price || !formData.stock) {
-      setError("Please fill in all required fields");
-      return;
-    }
+  e.preventDefault();
+  
+  if (!formData.name || !formData.price || !formData.stock) {
+    setError("Please fill in all required fields");
+    return;
+  }
 
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    try {
+  try {
+    // Create a regular object instead of FormData
+    const updateData = {
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      stock: parseInt(formData.stock) // Convert to integer
+    };
+
+    console.log("🔄 Updating product:", productId, "with data:", updateData);
+
+    // If there's a new file, use FormData for the file only
+    if (file) {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
       formDataToSend.append("description", formData.description);
       formDataToSend.append("price", parseFloat(formData.price));
-      formDataToSend.append("stock", parseFloat(formData.stock));
+      formDataToSend.append("stock", parseInt(formData.stock));
+      formDataToSend.append("file", file);
       
-      if (file) {
-        formDataToSend.append("file", file);
-      }
-
-      console.log("🔄 Updating product:", productId);
       await StoreAPI.updateProduct(productId, formDataToSend);
-      alert("✅ Product updated successfully!");
-      navigate("/account");
-    } catch (err) {
-      console.error("❌ Update error:", err);
-      setError(err.message || "Failed to update product");
-    } finally {
-      setLoading(false);
+    } else {
+      // No file - send as JSON
+      await StoreAPI.updateProduct(productId, updateData);
     }
-  };
+    
+    alert("✅ Product updated successfully!");
+    navigate("/account");
+  } catch (err) {
+    console.error("❌ Update error:", err);
+    setError(err.message || "Failed to update product");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCancel = () => {
     navigate("/account");

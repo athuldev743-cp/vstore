@@ -100,26 +100,39 @@ export const addProduct = async (formData) => {
   }
 };
 
-export const updateProduct = async (productId, formData) => {
+export const updateProduct = async (productId, data) => {
   const token = getToken();
   if (!token) throw new Error("Not logged in");
 
   try {
+    // Check if data is FormData or regular object
+    const isFormData = data instanceof FormData;
+    
     const res = await fetch(`${API_BASE}/api/store/products/${productId}`, {
       method: "PUT",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
+      headers: isFormData ? 
+        { Authorization: `Bearer ${token}` } : 
+        { 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json" 
+        },
+      body: isFormData ? data : JSON.stringify(data)
     });
 
-    let data;
+    let responseData;
     try {
-      data = await res.json();
+      responseData = await res.json();
     } catch {
-      data = {};
+      responseData = {};
     }
 
-    if (!res.ok) throw new Error(data.detail || `Failed to update product (${res.status})`);
-    return data;
+    if (!res.ok) {
+      const errorMsg = responseData.detail || 
+                       responseData.message || 
+                       `Failed to update product (${res.status})`;
+      throw new Error(errorMsg);
+    }
+    return responseData;
   } catch (err) {
     console.error("Update Product Error:", err);
     throw err;
