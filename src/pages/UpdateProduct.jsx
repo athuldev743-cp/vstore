@@ -94,8 +94,7 @@ export default function UpdateProduct() {
       setPreview(null);
     }
   };
-
-  const handleUpdate = async (e) => {
+const handleUpdate = async (e) => {
   e.preventDefault();
   
   if (!formData.name || !formData.price || !formData.stock) {
@@ -107,36 +106,42 @@ export default function UpdateProduct() {
   setError("");
 
   try {
-    // Create a regular object instead of FormData
-    const updateData = {
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock) // Convert to integer
-    };
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Not logged in");
 
-    console.log("🔄 Updating product:", productId, "with data:", updateData);
-
-    // If there's a new file, use FormData for the file only
+    // Use FormData to match backend expectation
+    const formDataToSend = new FormData();
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("description", formData.description);
+    formDataToSend.append("price", formData.price);
+    formDataToSend.append("stock", formData.stock);
+    
     if (file) {
-      const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("description", formData.description);
-      formDataToSend.append("price", parseFloat(formData.price));
-      formDataToSend.append("stock", parseInt(formData.stock));
       formDataToSend.append("file", file);
-      
-      await StoreAPI.updateProduct(productId, formDataToSend);
-    } else {
-      // No file - send as JSON
-      await StoreAPI.updateProduct(productId, updateData);
+    }
+
+    console.log("🔄 Updating product:", productId);
+
+    const res = await fetch(`https://virtual-store-backed.onrender.com/api/store/products/${productId}`, {
+      method: "PUT",
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        // Don't set Content-Type - let browser set it for FormData
+      },
+      body: formDataToSend
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.detail || `Failed to update product (${res.status})`);
     }
     
     alert("✅ Product updated successfully!");
     navigate("/account");
   } catch (err) {
     console.error("❌ Update error:", err);
-    setError(err.message || "Failed to update product");
+    setError("Failed to update product: " + err.message);
   } finally {
     setLoading(false);
   }
