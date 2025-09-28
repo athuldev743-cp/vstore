@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import "./AddProduct.css";
 
 export default function UpdateProduct() {
   const { productId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -19,35 +20,38 @@ export default function UpdateProduct() {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch product details using vendor products list
+  // Fetch product details - FIXED VERSION
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         setFetchLoading(true);
         setError("");
         
-        // Get all vendor products and find the specific one
-        const products = await StoreAPI.getVendorProducts("me");
-        console.log("Vendor products:", products);
-        
-        // Handle different response structures
-        const productsArray = Array.isArray(products) 
-          ? products 
-          : products?.data || products?.products || [];
-          
-        // Try to find product by id or _id
-        const product = productsArray.find((p) => {
-          console.log(`Comparing: ${p.id} or ${p._id} with ${productId}`);
-          return p.id === productId || p._id === productId || p.id?.toString() === productId;
-        });
-        
-        if (!product) {
-          setError(`Product not found. Available products: ${productsArray.length}`);
-          console.log("Available products:", productsArray);
+        // First, try to use the product data passed via navigation state
+        if (location.state && location.state.product) {
+          console.log("📦 Using product data from navigation state:", location.state.product);
+          const product = location.state.product;
+          setFormData({
+            name: product.name || "",
+            description: product.description || "",
+            price: product.price || "",
+            stock: product.stock || ""
+          });
+          setPreview(product.image_url || product.image || null);
+          setFetchLoading(false);
           return;
         }
         
-        console.log("Found product:", product);
+        // Fallback: If no state data, fetch product by ID
+        console.log("🔍 Fetching product by ID:", productId);
+        const product = await StoreAPI.getProductById(productId);
+        console.log("✅ Product details:", product);
+        
+        if (!product) {
+          setError("Product not found");
+          return;
+        }
+        
         setFormData({
           name: product.name || "",
           description: product.description || "",
@@ -56,7 +60,7 @@ export default function UpdateProduct() {
         });
         setPreview(product.image_url || product.image || null);
       } catch (err) {
-        console.error("Failed to load product:", err);
+        console.error("❌ Failed to load product:", err);
         setError("Failed to load product details: " + err.message);
       } finally {
         setFetchLoading(false);
@@ -69,7 +73,7 @@ export default function UpdateProduct() {
       setError("No product ID provided");
       setFetchLoading(false);
     }
-  }, [productId]);
+  }, [productId, location.state]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -113,11 +117,12 @@ export default function UpdateProduct() {
         formDataToSend.append("file", file);
       }
 
+      console.log("🔄 Updating product:", productId);
       await StoreAPI.updateProduct(productId, formDataToSend);
-      alert("Product updated successfully!");
+      alert("✅ Product updated successfully!");
       navigate("/account");
     } catch (err) {
-      console.error("Update error:", err);
+      console.error("❌ Update error:", err);
       setError(err.message || "Failed to update product");
     } finally {
       setLoading(false);
