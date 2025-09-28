@@ -130,6 +130,9 @@ export const getVendorByUserId = async (userId) => {
   const vendors = await listVendors();
   return Array.isArray(vendors) ? vendors.find(v => v.user_id === userId) : null;
 };
+export const getMyVendor = async () => {
+  return request("/api/store/vendors/my-vendor");
+};
 // -------------------------
 // Admin Vendor Management
 // -------------------------

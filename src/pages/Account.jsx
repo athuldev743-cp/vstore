@@ -34,80 +34,24 @@ export default function Account({ onLogout }) {
 if (res.role === "vendor") {
   setProductsLoading(true);
   try {
-    console.log("🔍 Fetching vendor products for user ID:", res.id);
+    console.log("🔍 User is vendor, fetching products...");
     
-    // First, get all vendors
-    const vendors = await StoreAPI.listVendors();
-    console.log("📋 All vendors from API:", vendors);
+    // TEMPORARY: Get all products until backend endpoint is ready
+    const allProducts = await StoreAPI.listProducts();
+    console.log("📦 Products loaded:", allProducts);
     
-    // Debug: Check the exact structure of the first vendor
-    if (vendors.length > 0) {
-      console.log("🔎 First vendor object:", vendors[0]);
-      console.log("🔎 First vendor keys:", Object.keys(vendors[0]));
-      console.log("🔎 First vendor values:", JSON.stringify(vendors[0], null, 2));
-    }
+    // For now, show all products (or filter them if you can identify user's products)
+    setVendorProducts(Array.isArray(allProducts) ? allProducts : []);
     
-    // Find the vendor that belongs to this user
-    let userVendor = null;
+  } catch (error) {
+    console.error("❌ Error loading products:", error);
     
-    if (Array.isArray(vendors)) {
-      // Try different field names that might contain the user ID
-      userVendor = vendors.find(vendor => {
-        // Check all possible field names that might contain user ID
-        const possibleFields = ['user_id', 'userId', 'user', 'owner_id', 'owner', 'userID'];
-        
-        for (let field of possibleFields) {
-          if (vendor[field] === res.id) {
-            console.log(`✅ Found matching field: ${field} = ${vendor[field]}`);
-            return true;
-          }
-        }
-        
-        // If no field matches, maybe the vendor ID itself is the user ID?
-        if (vendor.id === res.id) {
-          console.log("✅ Vendor ID matches user ID");
-          return true;
-        }
-        
-        return false;
-      });
-    }
-    
-    console.log("✅ Found vendor:", userVendor);
-    
-    // If no vendor found, let's try a different approach
-    if (!userVendor && vendors.length > 0) {
-      console.log("⚠️ No vendor found with user ID matching, trying alternative approaches...");
-      
-      // Approach 1: Maybe the first vendor is the one we want?
-      userVendor = vendors[0];
-      console.log("🧪 Trying first vendor:", userVendor);
-      
-      // Approach 2: Check if there's any vendor with a user_id field at all
-      const vendorWithUserId = vendors.find(v => v.user_id);
-      if (vendorWithUserId) {
-        console.log("🔍 Found vendor with user_id field:", vendorWithUserId.user_id);
-      }
-    }
-    
-    if (userVendor && userVendor.id) {
-      const products = await StoreAPI.getVendorProducts(userVendor.id);
-      console.log("📦 Vendor products received:", products);
-      
-      if (Array.isArray(products)) {
-        setVendorProducts(products);
-      } else {
-        console.warn("Unexpected products format:", products);
-        setVendorProducts([]);
-      }
+    // If the endpoint doesn't exist, use a fallback
+    if (error.message.includes("404") || error.message.includes("Not Found")) {
+      setError("Vendor features coming soon. Backend update required.");
     } else {
-      console.warn("❌ Still no vendor found");
-      setVendorProducts([]);
-      setError("Vendor profile not found. Please contact support.");
+      setError("Failed to load products: " + error.message);
     }
-  } catch (productsError) {
-    console.error("❌ Failed to load vendor products:", productsError);
-    setError("Failed to load your products: " + productsError.message);
     setVendorProducts([]);
   } finally {
     setProductsLoading(false);
