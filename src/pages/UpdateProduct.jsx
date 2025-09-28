@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
-import "./AddProduct.css";
+import "./UpdateProduct.css";
 
 export default function UpdateProduct() {
   const { productId } = useParams();
