@@ -1,5 +1,12 @@
 /* ProductDetails.CSS - Mobile Optimizations */
 
+/* Product Image */
+.product-image {
+  max-height: 400px;
+  object-fit: contain;
+  width: 100%;
+}
+
 /* Modal fixes for mobile */
 @media (max-width: 768px) {
   .modal.show.d-block {
@@ -48,20 +55,93 @@
   }
 }
 
+/* Custom Slider Styles */
+.custom-slider {
+  width: 100%;
+  height: 8px;
+  border-radius: 10px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.custom-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #007bff;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+}
+
+.custom-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #007bff;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.custom-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+}
+
+.custom-slider::-webkit-slider-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+}
+
+.custom-slider::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+}
+
+/* Quick quantity buttons */
+.quick-quantity-buttons .btn-sm {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  flex: 1;
+  max-width: 80px;
+}
+
+.quick-quantity-buttons .btn-sm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Button sizing fixes for mobile */
 @media (max-width: 576px) {
   /* Make order button more prominent */
-  .btn-primary {
+  .order-now-btn, .confirm-order-btn {
     padding: 16px 20px !important;
     font-size: 18px !important;
     font-weight: 600;
   }
   
-  /* Quantity buttons */
-  .btn-outline-primary.rounded-circle {
-    width: 50px !important;
-    height: 50px !important;
-    font-size: 20px;
+  /* Quick quantity buttons */
+  .quick-quantity-buttons .btn-sm {
+    padding: 10px 8px;
+    font-size: 13px;
   }
   
   /* Modal action buttons */
@@ -71,11 +151,15 @@
     flex: 1;
   }
   
-  /* Quantity input */
-  .quantity-section .form-control {
-    width: 120px !important;
-    font-size: 18px;
-    padding: 12px;
+  /* Slider thumb size */
+  .custom-slider::-webkit-slider-thumb {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .custom-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
   }
 }
 
@@ -168,4 +252,26 @@
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* Quantity section improvements */
+.quantity-section {
+  transition: all 0.3s ease;
+}
+
+.quantity-section strong.text-primary {
+  font-size: 1.2em;
+}
+
+/* Make quick buttons grid on very small screens */
+@media (max-width: 380px) {
+  .quick-quantity-buttons {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+  
+  .quick-quantity-buttons .btn-sm {
+    flex: 0 0 calc(50% - 8px);
+    max-width: calc(50% - 8px);
+  }
 }

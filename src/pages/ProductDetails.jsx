@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
-import "./ProductDetails.CSS"; // We'll still keep some custom CSS
+import "./ProductDetails.CSS";
 
 export default function ProductDetails({ user }) {
   const { productId } = useParams();
@@ -51,11 +51,22 @@ export default function ProductDetails({ user }) {
     fetchData();
   }, [productId, user]);
 
-  const incrementQuantity = () => setQuantity(prev => Math.min(product.stock, +(prev + 0.1).toFixed(1)));
-  const decrementQuantity = () => setQuantity(prev => Math.max(0.1, +(prev - 0.1).toFixed(1)));
-  const handleQuantityInput = e => {
+  // Remove the unused incrementQuantity and decrementQuantity functions
+
+  const handleSliderChange = (e) => {
     const val = parseFloat(e.target.value);
-    if (!isNaN(val)) setQuantity(Math.max(0.1, Math.min(val, product.stock || 20)));
+    if (!isNaN(val)) {
+      const maxQty = product ? Math.min(product.stock || 20, 20) : 20;
+      const clampedValue = Math.max(0.1, Math.min(val, maxQty));
+      setQuantity(parseFloat(clampedValue.toFixed(1)));
+    }
+  };
+
+  const handleQuickQuantity = (qty) => {
+    if (!product) return;
+    const maxQty = Math.min(product.stock || 20, 20);
+    const clampedValue = Math.max(0.1, Math.min(qty, maxQty));
+    setQuantity(parseFloat(clampedValue.toFixed(1)));
   };
 
   const placeOrder = async () => {
@@ -83,6 +94,7 @@ export default function ProductDetails({ user }) {
   if (!product) return <div className="alert alert-warning m-3">Product not found</div>;
 
   const maxQty = product.stock ? Math.min(product.stock, 20) : 20;
+  const sliderPercentage = (quantity / maxQty) * 100;
 
   return (
     <div className="container-fluid p-3">
@@ -98,8 +110,10 @@ export default function ProductDetails({ user }) {
               <img 
                 src={product.image_url || "/default-product.jpg"} 
                 alt={product.name}
-                className="img-fluid rounded"
-                style={{maxHeight: "400px", objectFit: "contain"}}
+                className="img-fluid rounded product-image"
+                onError={(e) => {
+                  e.target.src = "/default-product.jpg";
+                }}
               />
             </div>
           </div>
@@ -126,35 +140,47 @@ export default function ProductDetails({ user }) {
                 </div>
               )}
 
+              {/* Quantity Slider Section */}
               <div className="quantity-section mt-4">
-                <label className="form-label fw-semibold">Quantity (kg)</label>
-                <div className="d-flex align-items-center justify-content-center gap-3 my-3">
-                  <button 
-                    className="btn btn-outline-primary rounded-circle"
-                    style={{width: "45px", height: "45px"}}
-                    onClick={decrementQuantity} 
-                    disabled={quantity <= 0.1}
-                  >
-                    −
-                  </button>
-                  <input 
-                    type="number" 
-                    className="form-control text-center"
-                    style={{width: "100px"}}
-                    value={quantity} 
-                    step="0.1" 
-                    min="0.1" 
-                    max={maxQty} 
-                    onChange={handleQuantityInput} 
+                <label className="form-label fw-semibold d-flex justify-content-between">
+                  <span>Quantity: <strong className="text-primary">{quantity.toFixed(1)} kg</strong></span>
+                  <span className="text-muted">Max: {maxQty} kg</span>
+                </label>
+                
+                <div className="my-4">
+                  <input
+                    type="range"
+                    className="form-range custom-slider"
+                    min="0.1"
+                    max={maxQty}
+                    step="0.1"
+                    value={quantity}
+                    onChange={handleSliderChange}
+                    style={{
+                      background: `linear-gradient(to right, #007bff 0%, #007bff ${sliderPercentage}%, #dee2e6 ${sliderPercentage}%, #dee2e6 100%)`
+                    }}
                   />
-                  <button 
-                    className="btn btn-outline-primary rounded-circle"
-                    style={{width: "45px", height: "45px"}}
-                    onClick={incrementQuantity} 
-                    disabled={quantity >= maxQty}
-                  >
-                    +
-                  </button>
+                  
+                  <div className="d-flex justify-content-between mt-2">
+                    <small className="text-muted">0.1 kg</small>
+                    <small className="text-muted">{maxQty} kg</small>
+                  </div>
+                </div>
+
+                {/* Quick quantity buttons */}
+                <div className="d-flex justify-content-center gap-2 mb-3 quick-quantity-buttons">
+                  {[0.5, 1, 2, 5].map((qty) => (
+                    qty <= maxQty && (
+                      <button
+                        key={qty}
+                        type="button"
+                        className={`btn btn-sm ${Math.abs(quantity - qty) < 0.05 ? 'btn-primary' : 'btn-outline-primary'}`}
+                        onClick={() => handleQuickQuantity(qty)}
+                      >
+                        {qty} kg
+                      </button>
+                    )
+                  ))}
                 </div>
               </div>
 
@@ -164,7 +190,7 @@ export default function ProductDetails({ user }) {
                   <span className="h5 text-primary mb-0">₹{(product.price * quantity).toFixed(2)}</span>
                 </div>
                 <button 
-                  className="btn btn-primary w-100 py-3 fw-semibold"
+                  className="btn btn-primary w-100 py-3 fw-semibold order-now-btn"
                   onClick={() => setShowOrderPopup(true)} 
                   disabled={product.stock === 0}
                 >
@@ -234,7 +260,7 @@ export default function ProductDetails({ user }) {
                   Cancel
                 </button>
                 <button 
-                  className="btn btn-primary" 
+                  className="btn btn-primary confirm-order-btn" 
                   onClick={placeOrder} 
                   disabled={ordering || !form.mobile || !form.address}
                 >
