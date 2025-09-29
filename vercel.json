@@ -11,7 +11,7 @@
   ],
   "routes": [
     {
-      "src": "/(icon-192.png|icon-512.png|favicon.ico)",
+      "src": "/(icon-192.png|icon-512.png|logo192.png)",
       "dest": "/$1"
     },
     {
