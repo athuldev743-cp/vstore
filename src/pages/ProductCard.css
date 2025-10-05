@@ -1,16 +1,51 @@
-/* ProductCard.css - Only custom styles if needed */
+/* Smooth hover effect for product card */
 .product-card {
   transition: all 0.3s ease;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #fff;
 }
 
+/* Hover elevation */
 .product-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
 }
 
-/* Ensure images maintain aspect ratio on mobile */
+/* Product image container */
+.product-thumb {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Product name */
+.product-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-height: 3rem; /* Prevent stretching */
+  margin-bottom: 0.5rem;
+}
+
+/* Stock badge */
+.badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+}
+
+/* Responsive tweaks for mobile */
 @media (max-width: 768px) {
   .product-thumb {
-    height: 180px !important;
+    height: 180px !important; /* Slightly smaller for mobile */
   }
 }

@@ -54,7 +54,7 @@ export default function Home({ user }) {
       .then((data) => {
         const productsArray = Array.isArray(data) ? data : data?.products || [];
         setProducts(productsArray);
-        setFilteredProducts(productsArray); // initialize filtered
+        setFilteredProducts(productsArray);
       })
       .catch((err) => console.error("Failed to load products:", err))
       .finally(() => setLoadingProducts(false));
@@ -64,7 +64,6 @@ export default function Home({ user }) {
     fetchProducts();
   }, [fetchProducts]);
 
-  // 🔍 Filter products when search changes
   useEffect(() => {
     const q = searchQuery.toLowerCase();
     setFilteredProducts(products.filter((p) => p.name?.toLowerCase().includes(q)));
@@ -90,11 +89,11 @@ export default function Home({ user }) {
 
   return (
     <div className="home-container">
-      {/* ✅ Header */}
+      {/* Header */}
       <header className="home-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between sticky-header">
         <h1 className="logo mb-2 mb-md-0">VStore</h1>
 
-        {/* 🔍 Search Box */}
+        {/* Search Box */}
         <div className="search-box mb-2 mb-md-0">
           <Search size={18} className="me-2 text-muted" />
           <input
@@ -154,7 +153,7 @@ export default function Home({ user }) {
         ) : (
           <div className="row g-3">
             {filteredProducts.map((p) => (
-              <div key={p.id || p._id} className="col-6 col-sm-4 col-md-3 col-lg-2">
+              <div key={p.id || p._id} className="col-4 col-sm-4 col-md-4 col-lg-3 col-xl-2">
                 <ProductCard product={p} square />
               </div>
             ))}
@@ -162,7 +161,7 @@ export default function Home({ user }) {
         )}
       </main>
 
-      {/* ✅ Install App Button */}
+      {/* Install Button */}
       <InstallButton />
     </div>
   );

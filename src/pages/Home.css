@@ -1,241 +1,71 @@
-/* ---------- Home.css ---------- */
-
-/* Container */
 .home-container {
+  padding: 1rem;
   max-width: 1200px;
-  margin: 0 auto;
-  padding: 10px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: auto;
 }
 
-/* Sticky Header */
-.sticky-header {
-  position: sticky;
-  top: 0;
-  background-color: #fff;
-  z-index: 100;
-  padding: 10px;
-  border-bottom: 1px solid #e0e0e0;
+.home-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
 
-/* Logo */
-.logo {
+.home-header .logo {
   font-size: 1.8rem;
   font-weight: bold;
   color: #007bff;
 }
 
-/* Header Buttons Container */
-.header-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.search-box input {
+  padding: 0.4rem 0.6rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 180px;
 }
 
-/* Buttons Common */
-.header-buttons button,
-.btn-primary,
-.btn-secondary,
-.btn-admin,
-.btn-account,
-.refresh-btn {
-  padding: 8px 14px;
-  font-size: 0.875rem;
+.header-buttons button {
+  padding: 0.4rem 0.8rem;
+  border-radius: 5px;
   border: none;
-  border-radius: 6px;
   cursor: pointer;
-  transition: 0.2s all;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 0.9rem;
 }
 
-.header-buttons button:hover,
-.btn-primary:hover,
-.btn-secondary:hover,
-.btn-admin:hover,
-.btn-account:hover,
-.refresh-btn:hover {
-  opacity: 0.85;
-}
+.btn-primary { background-color: #007bff; color: #fff; }
+.btn-primary:hover { background-color: #0069d9; }
 
-/* Primary Button */
-.btn-primary {
-  background-color: #007bff;
-  color: #fff;
-}
+.btn-secondary { background-color: #6c757d; color: #fff; }
+.btn-secondary:hover { background-color: #5a6268; }
 
-/* Secondary Button */
-.btn-secondary {
-  background-color: #6c757d;
-  color: #fff;
-}
+.btn-admin { background-color: #28a745; color: #fff; }
+.btn-admin:hover { background-color: #218838; }
 
-/* Admin Button */
-.btn-admin {
-  background-color: #28a745;
-  color: #fff;
-}
+.btn-account { background-color: #17a2b8; color: #fff; }
+.btn-account:hover { background-color: #138496; }
 
-/* Account Button */
-.btn-account {
-  background-color: #17a2b8;
-  color: #fff;
-}
-
-/* Refresh Button */
 .refresh-btn {
-  background-color: #ffc107;
-  color: #000;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  padding: 0;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 0.4rem;
+  border-radius: 5px;
 }
-
-.spinning {
+.refresh-btn .spinning {
   animation: spin 1s linear infinite;
 }
 
-/* Spin Animation */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* Search Box */
-.search-box {
-  display: flex;
-  align-items: center;
-  background: #f1f1f1;
-  padding: 6px 10px;
-  border-radius: 6px;
-  width: 100%;
-  max-width: 300px;
-  transition: width 0.3s ease;
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 600;
 }
 
-.search-box input {
-  border: none;
-  background: transparent;
-  outline: none;
-  flex: 1;
-  font-size: 0.9rem;
-}
 
-/* Products Grid */
-.products-grid {
-  display: grid;
-  gap: 12px;
-}
-
-/* Product Card */
-.product-card {
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-  display: flex;
-  flex-direction: column;
-  background-color: #fff;
-  transition: transform 0.2s;
-}
-
-.product-card:hover {
-  transform: translateY(-4px);
-}
-
-.product-card .product-thumb {
-  width: 100%;
-  padding-top: 100%; /* 1:1 Aspect ratio for square */
-  position: relative;
-}
-
-.product-card img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.card-body {
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.product-name {
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-bottom: 4px;
-  min-height: 2.2rem; /* 2 lines */
-}
-
-.card-body .text-primary {
-  font-weight: bold;
-  font-size: 0.95rem;
-}
-
-.badge {
-  font-size: 0.7rem;
-  padding: 3px 6px;
-  border-radius: 4px;
-}
-
-.bg-success {
-  background-color: #28a745 !important;
-}
-
-.bg-danger {
-  background-color: #dc3545 !important;
-}
-
-/* Loading & No products */
-.loading-text,
-.no-products {
-  font-size: 1rem;
-  text-align: center;
-  padding: 20px 0;
-  color: #555;
-}
-
-/* Install Button */
-.install-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-  padding: 12px 20px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  transition: 0.2s all;
-}
-
-.install-btn:hover {
-  opacity: 0.85;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .search-box {
-    max-width: 100%;
-  }
-  
-  .header-buttons {
-    justify-content: flex-start;
-  }
-  
-  .col-6 {
-    flex: 0 0 33.33% !important;
-    max-width: 33.33% !important;
-  }
-}
 
 
 /* Desktop/Tablet enhancement */
