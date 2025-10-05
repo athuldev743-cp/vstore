@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import ProductCard from "./ProductCard";
-import { User, RefreshCw } from "lucide-react";
+import { User, RefreshCw, Search } from "lucide-react";
 import "./Home.css";
 
 export default function Home({ user }) {
@@ -11,6 +11,8 @@ export default function Home({ user }) {
   const [userLoaded, setUserLoaded] = useState(false);
   const [vendorApproved, setVendorApproved] = useState(false);
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [statusLoading, setStatusLoading] = useState(false);
 
@@ -51,6 +53,7 @@ export default function Home({ user }) {
       .then((data) => {
         const productsArray = Array.isArray(data) ? data : data?.products || [];
         setProducts(productsArray);
+        setFilteredProducts(productsArray);
       })
       .catch((err) => console.error("Failed to load products:", err))
       .finally(() => setLoadingProducts(false));
@@ -64,6 +67,14 @@ export default function Home({ user }) {
     if (user?.role === "customer") fetchVendorStatus();
     fetchProducts();
   };
+
+  // 🔍 Search filter logic
+  useEffect(() => {
+    const q = searchQuery.toLowerCase();
+    setFilteredProducts(
+      products.filter((p) => p.name?.toLowerCase().includes(q))
+    );
+  }, [searchQuery, products]);
 
   if (!userLoaded) {
     return (
@@ -80,18 +91,34 @@ export default function Home({ user }) {
 
   return (
     <div className="home-container">
-      <header className="home-header">
+      <header className="home-header d-flex align-items-center justify-content-between">
         <h1 className="logo">VStore</h1>
+
+        {/* 🔍 Search Box */}
+        <div className="search-box d-flex align-items-center mx-3">
+          <Search size={18} className="me-2 text-muted" />
+          <input
+            type="text"
+            placeholder="Search products..."
+            className="form-control form-control-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ maxWidth: "200px" }}
+          />
+        </div>
 
         <div className="header-buttons">
           {!user && (
-            <button className="btn-primary" onClick={() => navigate("/auth")}>
+            <button className="btn btn-primary" onClick={() => navigate("/auth")}>
               Sign Up / Login
             </button>
           )}
 
           {user?.role === "customer" && !vendorApproved && (
-            <button className="btn-secondary" onClick={() => navigate("/apply-vendor")}>
+            <button
+              className="btn btn-outline-secondary"
+              onClick={() => navigate("/apply-vendor")}
+            >
               {statusLoading ? "Checking..." : "Apply as Vendor"}
             </button>
           )}
@@ -99,7 +126,7 @@ export default function Home({ user }) {
           {user && (
             <button
               onClick={handleRefresh}
-              className="refresh-btn"
+              className="btn btn-light"
               title="Refresh status"
               disabled={statusLoading}
             >
@@ -108,29 +135,35 @@ export default function Home({ user }) {
           )}
 
           {user?.role === "admin" && (
-            <button className="btn-admin" onClick={() => navigate("/admin")}>
+            <button className="btn btn-warning" onClick={() => navigate("/admin")}>
               Admin Panel
             </button>
           )}
 
           {user && (
-            <button className="btn-account" onClick={() => navigate("/account")} title="Account">
+            <button
+              className="btn btn-outline-primary"
+              onClick={() => navigate("/account")}
+              title="Account"
+            >
               <User size={20} />
             </button>
           )}
         </div>
       </header>
 
-      <main className="home-content">
-        <h2 className="section-title">Products</h2>
+      <main className="home-content container mt-3">
+        <h2 className="section-title mb-3">Products</h2>
         {loadingProducts ? (
           <p className="loading-text">Loading products...</p>
-        ) : products.length === 0 ? (
-          <p className="no-products">No products available.</p>
+        ) : filteredProducts.length === 0 ? (
+          <p className="no-products">No products found.</p>
         ) : (
-          <div className="products-grid">
-            {products.map((p) => (
-              <ProductCard key={p.id || p._id} product={p} />
+          <div className="row g-3">
+            {filteredProducts.map((p) => (
+              <div key={p.id || p._id} className="col-4 col-sm-4 col-md-3 col-lg-2">
+                <ProductCard product={p} />
+              </div>
             ))}
           </div>
         )}

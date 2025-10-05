@@ -35,6 +35,15 @@
   border: none;
   cursor: pointer;
 }
+.search-box input {
+  border-radius: 20px;
+  padding: 4px 10px;
+}
+.search-box {
+  flex: 1;
+  max-width: 250px;
+}
+
 
 .btn-primary {
   background-color: #1976d2;
