@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import ProductCard from "./ProductCard";
 import { User, RefreshCw, Search } from "lucide-react";
+import InstallButton from "../componnents/InstallButton";
 import "./Home.css";
 
 export default function Home({ user }) {
@@ -160,6 +161,9 @@ export default function Home({ user }) {
           </div>
         )}
       </main>
+
+      {/* ✅ Install App Button */}
+      <InstallButton />
     </div>
   );
 }

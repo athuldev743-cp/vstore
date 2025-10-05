@@ -1,0 +1,32 @@
+.install-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  padding: 12px 18px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+/* Hover effect */
+.install-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 576px) {
+  .install-btn {
+    bottom: 15px;
+    right: 15px;
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+}
