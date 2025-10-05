@@ -65,18 +65,49 @@
   font-weight: 600;
 }
 
+/* -----------------------------
+   Products Grid Responsive
+------------------------------ */
 
+/* For extra-small screens (mobile) - 2 per row */
+.row > div[class*="col-6"] {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+  margin-bottom: 0.5rem;
+}
 
-
-/* Desktop/Tablet enhancement */
-@media (min-width: 768px) {
-  .products-grid {
-    grid-template-columns: repeat(3, 1fr);
+/* Medium screens and up - 3-4-5 columns using your current col classes */
+@media (max-width: 576px) {
+  .row > div[class*="col-6"] {
+    flex: 0 0 50%;
+    max-width: 50%;
   }
 }
 
-@media (min-width: 1024px) {
-  .products-grid {
-    grid-template-columns: repeat(4, 1fr);
+@media (min-width: 577px) and (max-width: 767px) {
+  .row > div[class*="col-sm-6"] {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (min-width: 768px) {
+  .row > div[class*="col-md-4"] {
+    flex: 0 0 33.3333%;
+    max-width: 33.3333%;
+  }
+}
+
+@media (min-width: 992px) {
+  .row > div[class*="col-lg-3"] {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+}
+
+@media (min-width: 1200px) {
+  .row > div[class*="col-xl-2"] {
+    flex: 0 0 16.6666%;
+    max-width: 16.6666%;
   }
 }

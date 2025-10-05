@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import * as StoreAPI from "../api/StoreAPI";
 import ProductCard from "./ProductCard";
 import { User, RefreshCw, Search } from "lucide-react";
-import InstallButton from "../componnents/InstallButton";
+import InstallButton from "../components/InstallButton";
 import "./Home.css";
 
 export default function Home({ user }) {
@@ -153,7 +153,7 @@ export default function Home({ user }) {
         ) : (
           <div className="row g-3">
             {filteredProducts.map((p) => (
-              <div key={p.id || p._id} className="col-4 col-sm-4 col-md-4 col-lg-3 col-xl-2">
+              <div key={p.id || p._id} className="col-6 col-sm-6 col-md-4 col-lg-3 col-xl-2">
                 <ProductCard product={p} square />
               </div>
             ))}
