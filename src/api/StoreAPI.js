@@ -173,3 +173,17 @@ export const approveVendor = async (vendorId) => {
 
 export const rejectVendor = async (vendorId) =>
   request(`/api/store/vendors/${vendorId}/reject`, { method: "POST" });
+// -------------------------
+// Razorpay Payment APIs
+// -------------------------
+export const createRazorpayOrder = async (amount) =>
+  request("/api/payments/create-order", {
+    method: "POST",
+    body: JSON.stringify({ amount }),
+  });
+
+export const verifyRazorpayPayment = async (data) =>
+  request("/api/payments/verify", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
