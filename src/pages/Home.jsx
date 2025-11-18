@@ -16,6 +16,7 @@ export default function Home({ user }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [productsError, setProductsError] = useState("");
 
   useEffect(() => {
     if (user !== undefined) setUserLoaded(true);
@@ -48,16 +49,41 @@ export default function Home({ user }) {
     }
   }, [user, fetchVendorStatus]);
 
-  const fetchProducts = useCallback(() => {
+  const fetchProducts = useCallback(async () => {
     setLoadingProducts(true);
-    StoreAPI.listProducts()
-      .then((data) => {
-        const productsArray = Array.isArray(data) ? data : data?.products || [];
-        setProducts(productsArray);
-        setFilteredProducts(productsArray);
-      })
-      .catch((err) => console.error("Failed to load products:", err))
-      .finally(() => setLoadingProducts(false));
+    setProductsError("");
+    
+    try {
+      console.log("🔄 Fetching products...");
+      const data = await StoreAPI.listProducts();
+      console.log("📦 API Response:", data);
+      
+      // Handle different response formats
+      let productsArray = [];
+      
+      if (Array.isArray(data)) {
+        productsArray = data;
+      } else if (data && Array.isArray(data.products)) {
+        productsArray = data.products;
+      } else if (data && data.data && Array.isArray(data.data)) {
+        productsArray = data.data;
+      } else {
+        console.warn("⚠️ Unexpected API response format:", data);
+        productsArray = [];
+      }
+      
+      console.log("✅ Processed products:", productsArray);
+      setProducts(productsArray);
+      setFilteredProducts(productsArray);
+      
+    } catch (error) {
+      console.error("❌ Failed to load products:", error);
+      setProductsError("Failed to load products. Please try again.");
+      setProducts([]);
+      setFilteredProducts([]);
+    } finally {
+      setLoadingProducts(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -66,7 +92,12 @@ export default function Home({ user }) {
 
   useEffect(() => {
     const q = searchQuery.toLowerCase();
-    setFilteredProducts(products.filter((p) => p.name?.toLowerCase().includes(q)));
+    setFilteredProducts(
+      products.filter((p) => 
+        p.name?.toLowerCase().includes(q) || 
+        p.description?.toLowerCase().includes(q)
+      )
+    );
   }, [searchQuery, products]);
 
   const handleRefresh = () => {
@@ -143,13 +174,47 @@ export default function Home({ user }) {
         </div>
       </header>
 
-      {/* Products */}
+      {/* Products Section */}
       <main className="home-content mt-3">
-        <h2 className="section-title mb-3">Products</h2>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h2 className="section-title mb-0">Products</h2>
+          <button 
+            className="btn btn-sm btn-outline-primary"
+            onClick={fetchProducts}
+            disabled={loadingProducts}
+          >
+            {loadingProducts ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
+
+        {productsError && (
+          <div className="alert alert-danger">
+            {productsError}
+            <button 
+              className="btn btn-sm btn-outline-danger ms-2"
+              onClick={fetchProducts}
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {loadingProducts ? (
-          <p className="loading-text">Loading products...</p>
+          <div className="text-center p-4">
+            <div className="spinner-border text-primary"></div>
+            <p className="mt-2">Loading products...</p>
+          </div>
         ) : filteredProducts.length === 0 ? (
-          <p className="no-products">No products found.</p>
+          <div className="text-center p-4">
+            <p className="text-muted">
+              {searchQuery ? "No products match your search." : "No products available."}
+            </p>
+            {!searchQuery && (
+              <button className="btn btn-primary" onClick={fetchProducts}>
+                Try Again
+              </button>
+            )}
+          </div>
         ) : (
           <div className="row g-3">
             {filteredProducts.map((p) => (
