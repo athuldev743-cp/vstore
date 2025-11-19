@@ -131,96 +131,134 @@ export default function ProductDetails({ user }) {
   };
 
   // ---- TRUE UPI PAYMENT FLOW ----
- const startUPIPayment = async () => {
-  console.log("Starting UPI payment with ID:", upiId);
-  
+// ---- SIMPLIFIED UPI PAYMENT FLOW ----
+const startUPIPayment = async () => {
   if (!product || !upiId.trim()) {
     alert("Please enter your UPI ID");
+    return;
+  }
+
+  // Basic UPI validation
+  const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+  if (!upiRegex.test(upiId.trim())) {
+    alert("Please enter a valid UPI ID (e.g.: yourname@oksbi, yournumber@ybl)");
     return;
   }
 
   setPlacingOrder(true);
 
   try {
+    console.log("Creating order for amount:", product.price * quantity);
+    
     const res = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         amount_in_rupees: product.price * quantity,
       }),
     });
 
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.detail || `HTTP error! status: ${res.status}`);
+    }
+
     const order = await res.json();
     console.log("Order created:", order);
 
     if (!order.id) {
-      alert("Failed to create Razorpay order");
-      return;
+      throw new Error("Invalid order response from server");
     }
 
-    // SIMPLE UPI FLOW - Let Razorpay handle the method selection
+    // SIMPLIFIED Razorpay options - let Razorpay handle the payment method
     const options = {
       key: RAZORPAY_KEY,
       amount: order.amount,
-      currency: "INR",
-      name: "Your Store Name",
+      currency: order.currency || "INR",
+      name: "Your Store",
       description: `Purchase: ${product.name}`,
       order_id: order.id,
+      
+      // Pre-fill customer details
       prefill: {
-        contact: form.mobile,
-        email: user?.email || "customer@example.com"
+        name: user?.name || "Customer",
+        email: user?.email || "customer@example.com",
+        contact: form.mobile || "9999999999"
       },
-      // Let user select UPI from Razorpay modal
+      
+      // Notes for tracking
+      notes: {
+        product: product.name,
+        upi_id: upiId.trim(),
+        quantity: quantity.toString()
+      },
+
       handler: async function (response) {
-        console.log("Payment response:", response);
-        const verify = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            order_id: response.razorpay_order_id,
-            payment_id: response.razorpay_payment_id,
-            signature: response.razorpay_signature,
-          }),
-        });
-
-        const result = await verify.json();
-
-        if (result.success) {
-          await StoreAPI.placeOrder({
-            product_id: product.id || product._id,
-            quantity,
-            mobile: form.mobile,
-            address: form.address,
-            payment_method: "upi",
-            payment_status: "paid"
+        console.log("Payment response received:", response);
+        
+        try {
+          const verifyRes = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              order_id: response.razorpay_order_id,
+              payment_id: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+            }),
           });
 
-          alert("Payment Successful! Order placed.");
-          setShowUPIPopup(false);
-          setShowPaymentPopup(false);
-          setShowOrderPopup(false);
-          setUpiId("");
-          navigate("/");
-        } else {
-          alert("Payment Verification Failed");
+          const result = await verifyRes.json();
+          console.log("Verification result:", result);
+
+          if (result.success) {
+            // Save successful order
+            await StoreAPI.placeOrder({
+              product_id: product.id || product._id,
+              quantity,
+              mobile: form.mobile,
+              address: form.address,
+              payment_method: "upi",
+              payment_status: "paid",
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id
+            });
+
+            alert("Payment Successful! Order placed.");
+            setShowUPIPopup(false);
+            setShowPaymentPopup(false);
+            setShowOrderPopup(false);
+            setUpiId("");
+            navigate("/orders"); // Navigate to orders page
+          } else {
+            alert("Payment verification failed. Please contact support.");
+          }
+        } catch (verifyError) {
+          console.error("Verification error:", verifyError);
+          alert("Payment verification error. Please contact support.");
         }
       },
+
       modal: {
         ondismiss: function() {
-          console.log("Modal dismissed");
+          console.log("Payment modal closed by user");
           setPlacingOrder(false);
         }
       },
-      theme: { color: "#3399cc" },
+
+      theme: {
+        color: "#3399cc"
+      }
     };
 
+    console.log("Opening Razorpay with options:", options);
     const razor = new window.Razorpay(options);
-    console.log("Opening Razorpay modal");
     razor.open();
 
   } catch (error) {
-    console.error("UPI Payment error:", error);
-    alert("Payment error: " + error.message);
+    console.error("UPI Payment initialization failed:", error);
+    alert(`Payment failed: ${error.message}`);
     setPlacingOrder(false);
   }
 };
