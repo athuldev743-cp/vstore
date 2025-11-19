@@ -57,7 +57,7 @@ export default function ProductDetails({ user }) {
     return window.confirm(message);
   };
 
-  // ---- UPI PAYMENT WITH MOBILE DETECTION ----
+  // ---- UPI PAYMENT WITH ANDROID/IPHONE OPTIMIZATION ----
   const startUPIPayment = async () => {
     if (!product) return;
 
@@ -83,28 +83,35 @@ export default function ProductDetails({ user }) {
           console.log("UPI Link:", response.upi_payment.upi_link);
           
           if (isMobileDevice) {
-            // On mobile - try to open UPI app directly
-            console.log("Opening UPI app on mobile device...");
-            window.location.href = response.upi_payment.upi_link;
+            const isiPhone = /iPhone|iPad|iPod/i.test(navigator.userAgent);
             
-            // Fallback: If UPI app not installed, show instructions
-            setTimeout(() => {
-              const confirmed = showConfirmationDialog(
-                `If UPI app didn't open automatically:\n\n` +
-                `1. Open your UPI app (GPay, PhonePe, Paytm)\n` +
-                `2. Send ₹${response.upi_payment.amount} to ${process.env.REACT_APP_UPI_ID || "your UPI ID"}\n` +
-                `3. Mention "Order ${response.id}" in notes\n\n` +
-                `Did you complete the payment?`
-              );
+            if (isiPhone) {
+              // iPhone - Use deep links to specific apps
+              openUPIOniPhone(response.upi_payment, response.id);
+            } else {
+              // Android - Use standard UPI link (your current setup)
+              console.log("Opening UPI app on Android...");
+              window.location.href = response.upi_payment.upi_link;
               
-              if (confirmed) {
-                confirmUPIPayment(response.id, response.upi_payment.amount);
-              } else {
-                setPlacingOrder(false);
-              }
-            }, 2000);
+              // Fallback for Android
+              setTimeout(() => {
+                const confirmed = showConfirmationDialog(
+                  `If UPI app didn't open automatically:\n\n` +
+                  `1. Open your UPI app\n` +
+                  `2. Send ₹${response.upi_payment.amount} to ${process.env.REACT_APP_UPI_ID || "your UPI ID"}\n` +
+                  `3. Mention "Order ${response.id}" in notes\n\n` +
+                  `Did you complete the payment?`
+                );
+                
+                if (confirmed) {
+                  confirmUPIPayment(response.id, response.upi_payment.amount);
+                } else {
+                  setPlacingOrder(false);
+                }
+              }, 2000);
+            }
           } else {
-            // On desktop - show UPI instructions
+            // Desktop - show UPI instructions
             showDesktopUPIInstructions(response.upi_payment, response.id);
           }
         } else {
@@ -121,12 +128,83 @@ export default function ProductDetails({ user }) {
     }
   };
 
+  // ---- IPHONE DEEP LINKS ----
+  const openUPIOniPhone = (upiData, orderId) => {
+    const upiId = process.env.REACT_APP_UPI_ID || "Athuldev743@okicici";
+    const storeName = encodeURIComponent(process.env.REACT_APP_STORE_NAME || "vstore");
+    const note = encodeURIComponent(`Order ${orderId}`);
+    
+    // Generate iPhone deep links
+    const deepLinks = {
+      phonepe: `phonepe://upi/pay?pa=${upiId}&pn=${storeName}&am=${upiData.amount}&cu=INR&tn=${note}`,
+      gpay: `gpay://upi/pay?pa=${upiId}&pn=${storeName}&am=${upiData.amount}&cu=INR&tn=${note}`,
+      paytm: `paytmmp://upi/pay?pa=${upiId}&pn=${storeName}&am=${upiData.amount}&cu=INR&tn=${note}`
+    };
+
+    // Show loading message
+    alert(`Opening UPI payment on iPhone...\n\nAmount: ₹${upiData.amount}\nIf app doesn't open, manual instructions will follow.`);
+    
+    // Try PhonePe first (very popular on iPhone)
+    window.location.href = deepLinks.phonepe;
+    
+    setTimeout(() => {
+      // If PhonePe didn't open, try Google Pay
+      window.location.href = deepLinks.gpay;
+      
+      setTimeout(() => {
+        // If Google Pay didn't open, try Paytm
+        window.location.href = deepLinks.paytm;
+        
+        setTimeout(() => {
+          // If nothing worked, show manual instructions
+          showiPhoneInstructions(upiData.amount, orderId, upiId);
+        }, 1000);
+      }, 1000);
+    }, 1000);
+  };
+
+  // ---- IPHONE MANUAL INSTRUCTIONS ----
+  const showiPhoneInstructions = (amount, orderId, upiId) => {
+    const instructions = `
+💰 UPI PAYMENT - ₹${amount}
+
+UPI ID: ${upiId}
+Order ID: ${orderId}
+
+HOW TO PAY ON IPHONE:
+1. Open PhonePe, Google Pay, or Paytm
+2. Tap "Send Money" or "Pay"
+3. Enter: ${upiId}
+4. Amount: ₹${amount}
+5. Note: Order ${orderId}
+6. Complete payment
+
+After payment, click OK to confirm.
+`;
+
+    alert(instructions);
+    
+    // Show confirmation
+    setTimeout(() => {
+      const confirmed = showConfirmationDialog(
+        `Did you complete the payment?\n\n` +
+        `₹${amount} to ${upiId}\n` +
+        `Order: ${orderId}`
+      );
+      
+      if (confirmed) {
+        confirmUPIPayment(orderId, amount);
+      } else {
+        setPlacingOrder(false);
+      }
+    }, 1500);
+  };
+
   // ---- DESKTOP UPI INSTRUCTIONS ----
- // ---- DESKTOP UPI INSTRUCTIONS ----
-const showDesktopUPIInstructions = (upiData, orderId) => {
-  const upiId = process.env.REACT_APP_UPI_ID || "yourupi@bank";
-  
-  const instructions = `
+  const showDesktopUPIInstructions = (upiData, orderId) => {
+    const upiId = process.env.REACT_APP_UPI_ID || "yourupi@bank";
+    
+    const instructions = `
 💰 UPI PAYMENT INSTRUCTIONS
 
 Amount: ₹${upiData.amount}
@@ -142,22 +220,22 @@ HOW TO PAY:
 After payment, click "I Paid" to confirm.
     `;
 
-  alert(instructions);
-  
-  // Show confirmation after user reads instructions
-  setTimeout(() => {
-    const confirmed = showConfirmationDialog(
-      `Please complete the payment on your phone and then confirm.\n\n` +
-      `Did you send ₹${upiData.amount} to ${upiId}?`
-    );
+    alert(instructions);
     
-    if (confirmed) {
-      confirmUPIPayment(orderId, upiData.amount);
-    } else {
-      setPlacingOrder(false);
-    }
-  }, 1000);
-};
+    // Show confirmation after user reads instructions
+    setTimeout(() => {
+      const confirmed = showConfirmationDialog(
+        `Please complete the payment on your phone and then confirm.\n\n` +
+        `Did you send ₹${upiData.amount} to ${upiId}?`
+      );
+      
+      if (confirmed) {
+        confirmUPIPayment(orderId, upiData.amount);
+      } else {
+        setPlacingOrder(false);
+      }
+    }, 1000);
+  };
 
   // ---- UPI PAYMENT CONFIRMATION ----
   const confirmUPIPayment = async (orderId, amount) => {
@@ -447,7 +525,7 @@ After payment, click "I Paid" to confirm.
                             <p className="mb-0 text-muted">Pay directly with UPI - Fast & Secure</p>
                             <small className="text-info">
                               {isMobileDevice 
-                                ? "Opens GPay, PhonePe, Paytm automatically" 
+                                ? "Optimized for your device" 
                                 : "Instructions will be shown for payment"
                               }
                             </small>
