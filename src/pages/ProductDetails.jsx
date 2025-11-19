@@ -11,15 +11,12 @@ export default function ProductDetails({ user }) {
   const [form, setForm] = useState({ mobile: "", address: "" });
   const [showOrderPopup, setShowOrderPopup] = useState(false);
   const [showPaymentPopup, setShowPaymentPopup] = useState(false);
-  const [showUPIPopup, setShowUPIPopup] = useState(false);
-  const [upiId, setUpiId] = useState("");
   const [loading, setLoading] = useState(true);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState("");
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("online");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("upi");
 
   const BACKEND_URL = process.env.REACT_APP_API_URL;
-  const RAZORPAY_KEY = process.env.REACT_APP_RAZORPAY_KEY;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,223 +44,106 @@ export default function ProductDetails({ user }) {
     fetchData();
   }, [productId, user]);
 
-  // ---- STANDARD RAZORPAY PAYMENT (Cards, Net Banking, etc) ----
-  const startRazorpayPayment = async () => {
+  // Custom confirmation dialog function
+  const showConfirmationDialog = (message) => {
+    return window.confirm(message);
+  };
+
+  // ---- NEW UPI INTENT PAYMENT FLOW ----
+  const startUPIPayment = async () => {
     if (!product) return;
 
     setPlacingOrder(true);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount_in_rupees: product.price * quantity,
-        }),
-      });
-
-      const order = await res.json();
-
-      if (!order.id) {
-        alert("Failed to create Razorpay order");
-        return;
-      }
-
-      const options = {
-        key: RAZORPAY_KEY,
-        amount: order.amount,
-        currency: "INR",
-        name: "Your Store Name",
-        description: `Purchase: ${product.name}`,
-        order_id: order.id,
-        prefill: {
-          name: user?.name || "",
-          email: user?.email || "",
-          contact: form.mobile,
-        },
-        handler: async function (response) {
-          const verify = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              order_id: response.razorpay_order_id,
-              payment_id: response.razorpay_payment_id,
-              signature: response.razorpay_signature,
-            }),
-          });
-
-          const result = await verify.json();
-
-          if (result.success) {
-            await StoreAPI.placeOrder({
-              product_id: product.id || product._id,
-              quantity,
-              mobile: form.mobile,
-              address: form.address,
-              payment_method: "online",
-              payment_status: "paid"
-            });
-
-            alert("Payment Successful! Order placed.");
-            setShowPaymentPopup(false);
-            setShowOrderPopup(false);
-            navigate("/");
-          } else {
-            alert("Payment Verification Failed");
-          }
-        },
-        modal: {
-          ondismiss: function() {
-            setPlacingOrder(false);
-          }
-        },
-        theme: { color: "#3399cc" },
+      console.log("Placing UPI order...");
+      
+      // Create order with UPI payment method
+      const orderData = {
+        product_id: product.id || product._id,
+        quantity: quantity,
+        payment_method: "upi",
+        mobile: form.mobile,
+        address: form.address
       };
 
-      const razor = new window.Razorpay(options);
-      razor.open();
+      const response = await StoreAPI.placeOrder(orderData);
+      
+      if (response && response.id) {
+        // Check if UPI payment data is available
+        if (response.upi_payment && response.upi_payment.upi_link) {
+          console.log("Opening UPI link:", response.upi_payment.upi_link);
+          
+          // Open UPI app
+          window.location.href = response.upi_payment.upi_link;
+          
+          // Show confirmation dialog after 3 seconds
+          setTimeout(() => {
+            const confirmed = showConfirmationDialog(
+              `Did you complete the payment of ₹${response.upi_payment.amount}?\n\n` +
+              `If yes, click "OK" to confirm your payment.`
+            );
+            
+            if (confirmed) {
+              confirmUPIPayment(response.id, response.upi_payment.amount);
+            } else {
+              setPlacingOrder(false);
+            }
+          }, 3000);
+        } else {
+          throw new Error("UPI payment data not available");
+        }
+      } else {
+        throw new Error("Failed to create order");
+      }
 
     } catch (error) {
-      console.error(error);
-      alert("Unable to start payment");
+      console.error("UPI Payment failed:", error);
+      alert(`Payment failed: ${error.message}`);
       setPlacingOrder(false);
     }
   };
 
-  // ---- TRUE UPI PAYMENT FLOW ----
-// ---- SIMPLIFIED UPI PAYMENT FLOW ----
-const startUPIPayment = async () => {
-  if (!product || !upiId.trim()) {
-    alert("Please enter your UPI ID");
-    return;
-  }
+  // ---- UPI PAYMENT CONFIRMATION ----
+  const confirmUPIPayment = async (orderId, amount) => {
+    try {
+      const transactionId = window.prompt(
+        'Payment completed! Please enter transaction ID (optional):\n\n' +
+        'You can find this in your UPI app transaction history.'
+      );
 
-  // Basic UPI validation
-  const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
-  if (!upiRegex.test(upiId.trim())) {
-    alert("Please enter a valid UPI ID (e.g.: yourname@oksbi, yournumber@ybl)");
-    return;
-  }
+      const response = await fetch(`${BACKEND_URL}/api/store/orders/${orderId}/confirm-payment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          order_id: orderId,
+          amount: amount,
+          transaction_id: transactionId || ''
+        })
+      });
 
-  setPlacingOrder(true);
+      const result = await response.json();
 
-  try {
-    console.log("Creating order for amount:", product.price * quantity);
-    
-    const res = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        amount_in_rupees: product.price * quantity,
-      }),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.detail || `HTTP error! status: ${res.status}`);
-    }
-
-    const order = await res.json();
-    console.log("Order created:", order);
-
-    if (!order.id) {
-      throw new Error("Invalid order response from server");
-    }
-
-    // SIMPLIFIED Razorpay options - let Razorpay handle the payment method
-    const options = {
-      key: RAZORPAY_KEY,
-      amount: order.amount,
-      currency: order.currency || "INR",
-      name: "Your Store",
-      description: `Purchase: ${product.name}`,
-      order_id: order.id,
-      
-      // Pre-fill customer details
-      prefill: {
-        name: user?.name || "Customer",
-        email: user?.email || "customer@example.com",
-        contact: form.mobile || "9999999999"
-      },
-      
-      // Notes for tracking
-      notes: {
-        product: product.name,
-        upi_id: upiId.trim(),
-        quantity: quantity.toString()
-      },
-
-      handler: async function (response) {
-        console.log("Payment response received:", response);
-        
-        try {
-          const verifyRes = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              order_id: response.razorpay_order_id,
-              payment_id: response.razorpay_payment_id,
-              signature: response.razorpay_signature,
-            }),
-          });
-
-          const result = await verifyRes.json();
-          console.log("Verification result:", result);
-
-          if (result.success) {
-            // Save successful order
-            await StoreAPI.placeOrder({
-              product_id: product.id || product._id,
-              quantity,
-              mobile: form.mobile,
-              address: form.address,
-              payment_method: "upi",
-              payment_status: "paid",
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id
-            });
-
-            alert("Payment Successful! Order placed.");
-            setShowUPIPopup(false);
-            setShowPaymentPopup(false);
-            setShowOrderPopup(false);
-            setUpiId("");
-            navigate("/orders"); // Navigate to orders page
-          } else {
-            alert("Payment verification failed. Please contact support.");
-          }
-        } catch (verifyError) {
-          console.error("Verification error:", verifyError);
-          alert("Payment verification error. Please contact support.");
-        }
-      },
-
-      modal: {
-        ondismiss: function() {
-          console.log("Payment modal closed by user");
-          setPlacingOrder(false);
-        }
-      },
-
-      theme: {
-        color: "#3399cc"
+      if (result.success) {
+        alert("✅ Payment confirmed successfully! Your order is being processed.");
+        setShowPaymentPopup(false);
+        setShowOrderPopup(false);
+        navigate("/orders");
+      } else {
+        alert("❌ Payment confirmation failed. Please contact support.");
       }
-    };
+    } catch (error) {
+      console.error("Payment confirmation error:", error);
+      alert("❌ Payment confirmation failed. Please try again.");
+    } finally {
+      setPlacingOrder(false);
+    }
+  };
 
-    console.log("Opening Razorpay with options:", options);
-    const razor = new window.Razorpay(options);
-    razor.open();
-
-  } catch (error) {
-    console.error("UPI Payment initialization failed:", error);
-    alert(`Payment failed: ${error.message}`);
-    setPlacingOrder(false);
-  }
-};
-
-  // ---- Cash on Delivery Handler ----
+  // ---- CASH ON DELIVERY HANDLER ----
   const handleCashOnDelivery = async () => {
     if (!product) return;
 
@@ -271,20 +151,19 @@ const startUPIPayment = async () => {
     try {
       await StoreAPI.placeOrder({
         product_id: product.id || product._id,
-        quantity,
+        quantity: quantity,
         mobile: form.mobile,
         address: form.address,
-        payment_method: "cash_on_delivery",
-        payment_status: "pending"
+        payment_method: "cod"
       });
 
-      alert("Order placed successfully! You'll pay when your order arrives.");
+      alert("✅ Order placed successfully! You'll pay when your order arrives.");
       setShowPaymentPopup(false);
       setShowOrderPopup(false);
-      navigate("/");
+      navigate("/orders");
     } catch (error) {
       console.error("COD order failed:", error);
-      alert("Failed to place order. Please try again.");
+      alert("❌ Failed to place order. Please try again.");
     } finally {
       setPlacingOrder(false);
     }
@@ -509,38 +388,11 @@ const startUPIPayment = async () => {
                         <div className="d-flex justify-content-between align-items-center">
                           <div>
                             <strong>💳 UPI Payment</strong>
-                            <p className="mb-0 text-muted">Pay directly with UPI ID - Fast & Secure</p>
-                            <small className="text-info">Pay using PhonePe, Google Pay, Paytm, etc.</small>
+                            <p className="mb-0 text-muted">Pay directly with UPI - Fast & Secure</p>
+                            <small className="text-info">Opens GPay, PhonePe, Paytm automatically</small>
                           </div>
                           <div className="text-success">
                             <small>Instant</small>
-                          </div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Online Payment Option */}
-                <div className="payment-option card mb-3">
-                  <div className="card-body">
-                    <div className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="radio"
-                        name="paymentMethod"
-                        id="onlinePayment"
-                        checked={selectedPaymentMethod === "online"}
-                        onChange={() => setSelectedPaymentMethod("online")}
-                      />
-                      <label className="form-check-label w-100" htmlFor="onlinePayment">
-                        <div className="d-flex justify-content-between align-items-center">
-                          <div>
-                            <strong>💳 Credit/Debit Card & Net Banking</strong>
-                            <p className="mb-0 text-muted">Pay with Card, Net Banking, or Wallet</p>
-                          </div>
-                          <div className="text-success">
-                            <small>Secure</small>
                           </div>
                         </div>
                       </label>
@@ -584,20 +436,10 @@ const startUPIPayment = async () => {
                 {selectedPaymentMethod === "upi" && (
                   <button 
                     className="btn btn-success" 
-                    onClick={() => setShowUPIPopup(true)}
+                    onClick={startUPIPayment}
                     disabled={placingOrder}
                   >
-                    {placingOrder ? "Processing..." : "Pay with UPI"}
-                  </button>
-                )}
-                
-                {selectedPaymentMethod === "online" && (
-                  <button 
-                    className="btn btn-primary" 
-                    onClick={startRazorpayPayment}
-                    disabled={placingOrder}
-                  >
-                    {placingOrder ? "Processing..." : "Pay Now"}
+                    {placingOrder ? "Opening UPI..." : "Pay with UPI"}
                   </button>
                 )}
                 
@@ -610,68 +452,6 @@ const startUPIPayment = async () => {
                     {placingOrder ? "Placing Order..." : "Confirm COD"}
                   </button>
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* UPI ID ENTRY POPUP */}
-      {showUPIPopup && (
-        <div className="modal show d-block" style={{ background: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Enter UPI ID</h5>
-                <button className="btn-close" onClick={() => setShowUPIPopup(false)}></button>
-              </div>
-
-              <div className="modal-body">
-                <div className="alert alert-info">
-                  <small>
-                    <strong>How to find your UPI ID?</strong><br/>
-                    • Open your UPI app (PhonePe, Google Pay, Paytm, etc.)<br/>
-                    • Look for your UPI ID in profile section<br/>
-                    • Format: yourname@oksbi, yournumber@ybl, etc.
-                  </small>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Your UPI ID *</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g.: yourname@oksbi, yournumber@ybl"
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                    autoFocus
-                  />
-                  <div className="form-text">
-                    Enter your UPI ID to pay directly from your bank account
-                  </div>
-                </div>
-
-                <div className="card">
-                  <div className="card-body py-2">
-                    <div className="d-flex justify-content-between">
-                      <span>Order Amount:</span>
-                      <strong>₹{totalAmount.toFixed(2)}</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowUPIPopup(false)}>
-                  Cancel
-                </button>
-                <button 
-                  className="btn btn-success" 
-                  onClick={startUPIPayment}
-                  disabled={placingOrder || !upiId.trim()}
-                >
-                  {placingOrder ? "Opening UPI..." : "Pay via UPI"}
-                </button>
               </div>
             </div>
           </div>
