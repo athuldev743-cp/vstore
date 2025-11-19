@@ -11,12 +11,12 @@ export default function ProductDetails({ user }) {
   const [form, setForm] = useState({ mobile: "", address: "" });
   const [showOrderPopup, setShowOrderPopup] = useState(false);
   const [showPaymentPopup, setShowPaymentPopup] = useState(false);
-  const [showUPIPopup, setShowUPIPopup] = useState(false); // NEW: UPI popup state
-  const [upiId, setUpiId] = useState(""); // NEW: UPI ID input
+  const [showUPIPopup, setShowUPIPopup] = useState(false);
+  const [upiId, setUpiId] = useState("");
   const [loading, setLoading] = useState(true);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState("");
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("online"); // NEW: Track selected method
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("online");
 
   const BACKEND_URL = process.env.REACT_APP_API_URL;
   const RAZORPAY_KEY = process.env.REACT_APP_RAZORPAY_KEY;
@@ -54,7 +54,6 @@ export default function ProductDetails({ user }) {
     setPlacingOrder(true);
 
     try {
-      // Create order from backend
       const res = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -70,7 +69,6 @@ export default function ProductDetails({ user }) {
         return;
       }
 
-      // Razorpay modal options
       const options = {
         key: RAZORPAY_KEY,
         amount: order.amount,
@@ -84,7 +82,6 @@ export default function ProductDetails({ user }) {
           contact: form.mobile,
         },
         handler: async function (response) {
-          // Verify payment
           const verify = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -98,7 +95,6 @@ export default function ProductDetails({ user }) {
           const result = await verify.json();
 
           if (result.success) {
-            // Save order in database
             await StoreAPI.placeOrder({
               product_id: product.id || product._id,
               quantity,
@@ -141,7 +137,6 @@ export default function ProductDetails({ user }) {
       return;
     }
 
-    // Basic UPI ID validation
     const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
     if (!upiRegex.test(upiId.trim())) {
       alert("Please enter a valid UPI ID (e.g.: yourname@oksbi, yournumber@ybl)");
@@ -151,7 +146,6 @@ export default function ProductDetails({ user }) {
     setPlacingOrder(true);
 
     try {
-      // Create order from backend
       const res = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -187,7 +181,6 @@ export default function ProductDetails({ user }) {
         "upi.upi_id": upiId.trim(),
         
         handler: async function (response) {
-          // Verify payment
           const verify = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -201,7 +194,6 @@ export default function ProductDetails({ user }) {
           const result = await verify.json();
 
           if (result.success) {
-            // Save order in database
             await StoreAPI.placeOrder({
               product_id: product.id || product._id,
               quantity,
@@ -209,7 +201,7 @@ export default function ProductDetails({ user }) {
               address: form.address,
               payment_method: "upi",
               payment_status: "paid",
-              upi_id: upiId // Store UPI ID for reference
+              upi_id: upiId
             });
 
             alert("UPI Payment Successful! Order placed.");
@@ -291,17 +283,6 @@ export default function ProductDetails({ user }) {
     setShowPaymentPopup(true);
   };
 
-  // NEW: Handle payment method selection
-  const handlePaymentMethodSelect = (method) => {
-    setSelectedPaymentMethod(method);
-    
-    if (method === "upi") {
-      setShowUPIPopup(true);
-    } else if (method === "online") {
-      startRazorpayPayment();
-    }
-  };
-
   if (loading) return <div className="d-flex justify-content-center p-4"><div className="spinner-border"></div></div>;
   if (error) return <div className="alert alert-danger m-3">{error}</div>;
   if (!product) return <div className="alert alert-warning m-3">Product not found</div>;
@@ -312,13 +293,11 @@ export default function ProductDetails({ user }) {
 
   return (
     <div className="container-fluid p-3">
-      {/* BACK BUTTON */}
       <button className="btn btn-link text-decoration-none p-0 mb-3" onClick={() => navigate(-1)}>
         ← Back
       </button>
 
       <div className="row g-4">
-        {/* PRODUCT IMAGE */}
         <div className="col-12 col-md-6">
           <div className="card shadow-sm">
             <div className="card-body d-flex justify-content-center align-items-center p-4">
@@ -331,7 +310,6 @@ export default function ProductDetails({ user }) {
           </div>
         </div>
 
-        {/* PRODUCT INFO */}
         <div className="col-12 col-md-6">
           <div className="card shadow-sm">
             <div className="card-body">
@@ -345,7 +323,6 @@ export default function ProductDetails({ user }) {
                 </span>
               </div>
 
-              {/* QUANTITY SLIDER */}
               <div className="quantity-section mt-4">
                 <label className="form-label fw-semibold d-flex justify-content-between">
                   <span>Quantity: <strong className="text-primary">{quantity.toFixed(1)} kg</strong></span>
@@ -380,7 +357,6 @@ export default function ProductDetails({ user }) {
                 </div>
               </div>
 
-              {/* TOTAL & BUTTON */}
               <div className="mt-4 pt-3 border-top">
                 <div className="d-flex justify-content-between mb-2">
                   <span>Total:</span>
@@ -410,7 +386,6 @@ export default function ProductDetails({ user }) {
               </div>
 
               <div className="modal-body">
-                {/* Order Summary */}
                 <div className="card mb-3">
                   <div className="card-header bg-light">
                     <strong>Order Summary</strong>
@@ -428,7 +403,6 @@ export default function ProductDetails({ user }) {
                   </div>
                 </div>
 
-                {/* Contact Information */}
                 <div className="mb-3">
                   <label className="form-label">Mobile Number *</label>
                   <input
@@ -488,7 +462,7 @@ export default function ProductDetails({ user }) {
                   </div>
                 </div>
 
-                {/* UPI Payment Option - NOW WITH DIRECT UPI FLOW */}
+                {/* UPI Payment Option */}
                 <div className="payment-option card mb-3">
                   <div className="card-body">
                     <div className="form-check">
@@ -516,7 +490,7 @@ export default function ProductDetails({ user }) {
                   </div>
                 </div>
 
-                {/* Online Payment Option (Cards, Net Banking) */}
+                {/* Online Payment Option */}
                 <div className="payment-option card mb-3">
                   <div className="card-body">
                     <div className="form-check">
@@ -576,7 +550,6 @@ export default function ProductDetails({ user }) {
                   Back
                 </button>
                 
-                {/* Conditional buttons based on selection */}
                 {selectedPaymentMethod === "upi" && (
                   <button 
                     className="btn btn-success" 
