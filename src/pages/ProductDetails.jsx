@@ -131,16 +131,11 @@ export default function ProductDetails({ user }) {
   };
 
   // ---- TRUE UPI PAYMENT FLOW ----
- // ---- TRUE UPI PAYMENT FLOW ----
-const startUPIPayment = async () => {
+ const startUPIPayment = async () => {
+  console.log("Starting UPI payment with ID:", upiId);
+  
   if (!product || !upiId.trim()) {
     alert("Please enter your UPI ID");
-    return;
-  }
-
-  const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
-  if (!upiRegex.test(upiId.trim())) {
-    alert("Please enter a valid UPI ID (e.g.: yourname@oksbi, yournumber@ybl)");
     return;
   }
 
@@ -156,13 +151,14 @@ const startUPIPayment = async () => {
     });
 
     const order = await res.json();
+    console.log("Order created:", order);
 
     if (!order.id) {
       alert("Failed to create Razorpay order");
       return;
     }
 
-    // 🔥 CORRECT UPI CONFIGURATION
+    // SIMPLE UPI FLOW - Let Razorpay handle the method selection
     const options = {
       key: RAZORPAY_KEY,
       amount: order.amount,
@@ -170,21 +166,13 @@ const startUPIPayment = async () => {
       name: "Your Store Name",
       description: `Purchase: ${product.name}`,
       order_id: order.id,
-      
-      // UPI-SPECIFIC CONFIGURATION
-      method: "upi",
       prefill: {
         contact: form.mobile,
         email: user?.email || "customer@example.com"
       },
-      
-      // UPI Configuration - CORRECT SYNTAX
-      "upi": {
-        "flow": "intent", // This is the key parameter
-        "vpa": upiId.trim()
-      },
-      
+      // Let user select UPI from Razorpay modal
       handler: async function (response) {
+        console.log("Payment response:", response);
         const verify = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -204,22 +192,22 @@ const startUPIPayment = async () => {
             mobile: form.mobile,
             address: form.address,
             payment_method: "upi",
-            payment_status: "paid",
-            upi_id: upiId
+            payment_status: "paid"
           });
 
-          alert("UPI Payment Successful! Order placed.");
+          alert("Payment Successful! Order placed.");
           setShowUPIPopup(false);
           setShowPaymentPopup(false);
           setShowOrderPopup(false);
           setUpiId("");
           navigate("/");
         } else {
-          alert("UPI Payment Verification Failed");
+          alert("Payment Verification Failed");
         }
       },
       modal: {
         ondismiss: function() {
+          console.log("Modal dismissed");
           setPlacingOrder(false);
         }
       },
@@ -227,11 +215,12 @@ const startUPIPayment = async () => {
     };
 
     const razor = new window.Razorpay(options);
+    console.log("Opening Razorpay modal");
     razor.open();
 
   } catch (error) {
     console.error("UPI Payment error:", error);
-    alert("Unable to process UPI payment. Please try another method.");
+    alert("Payment error: " + error.message);
     setPlacingOrder(false);
   }
 };
