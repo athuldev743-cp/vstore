@@ -131,106 +131,110 @@ export default function ProductDetails({ user }) {
   };
 
   // ---- TRUE UPI PAYMENT FLOW ----
-  const startUPIPayment = async () => {
-    if (!product || !upiId.trim()) {
-      alert("Please enter your UPI ID");
+ // ---- TRUE UPI PAYMENT FLOW ----
+const startUPIPayment = async () => {
+  if (!product || !upiId.trim()) {
+    alert("Please enter your UPI ID");
+    return;
+  }
+
+  const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+  if (!upiRegex.test(upiId.trim())) {
+    alert("Please enter a valid UPI ID (e.g.: yourname@oksbi, yournumber@ybl)");
+    return;
+  }
+
+  setPlacingOrder(true);
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount_in_rupees: product.price * quantity,
+      }),
+    });
+
+    const order = await res.json();
+
+    if (!order.id) {
+      alert("Failed to create Razorpay order");
       return;
     }
 
-    const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
-    if (!upiRegex.test(upiId.trim())) {
-      alert("Please enter a valid UPI ID (e.g.: yourname@oksbi, yournumber@ybl)");
-      return;
-    }
+    // 🔥 CORRECT UPI CONFIGURATION
+    const options = {
+      key: RAZORPAY_KEY,
+      amount: order.amount,
+      currency: "INR",
+      name: "Your Store Name",
+      description: `Purchase: ${product.name}`,
+      order_id: order.id,
+      
+      // UPI-SPECIFIC CONFIGURATION
+      method: "upi",
+      prefill: {
+        contact: form.mobile,
+        email: user?.email || "customer@example.com"
+      },
+      
+      // UPI Configuration - CORRECT SYNTAX
+      "upi": {
+        "flow": "intent", // This is the key parameter
+        "vpa": upiId.trim()
+      },
+      
+      handler: async function (response) {
+        const verify = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            order_id: response.razorpay_order_id,
+            payment_id: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          }),
+        });
 
-    setPlacingOrder(true);
+        const result = await verify.json();
 
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount_in_rupees: product.price * quantity,
-        }),
-      });
-
-      const order = await res.json();
-
-      if (!order.id) {
-        alert("Failed to create Razorpay order");
-        return;
-      }
-
-      // UPI-specific Razorpay options
-      const options = {
-        key: RAZORPAY_KEY,
-        amount: order.amount,
-        currency: "INR",
-        name: "Your Store Name",
-        description: `Purchase: ${product.name}`,
-        order_id: order.id,
-        
-        // 🔥 UPI-SPECIFIC CONFIGURATION
-        method: "upi",
-        prefill: {
-          contact: form.mobile,
-        },
-        
-        // UPI Intent Configuration
-        "upi.intent": true,
-        "upi.upi_id": upiId.trim(),
-        
-        handler: async function (response) {
-          const verify = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              order_id: response.razorpay_order_id,
-              payment_id: response.razorpay_payment_id,
-              signature: response.razorpay_signature,
-            }),
+        if (result.success) {
+          await StoreAPI.placeOrder({
+            product_id: product.id || product._id,
+            quantity,
+            mobile: form.mobile,
+            address: form.address,
+            payment_method: "upi",
+            payment_status: "paid",
+            upi_id: upiId
           });
 
-          const result = await verify.json();
+          alert("UPI Payment Successful! Order placed.");
+          setShowUPIPopup(false);
+          setShowPaymentPopup(false);
+          setShowOrderPopup(false);
+          setUpiId("");
+          navigate("/");
+        } else {
+          alert("UPI Payment Verification Failed");
+        }
+      },
+      modal: {
+        ondismiss: function() {
+          setPlacingOrder(false);
+        }
+      },
+      theme: { color: "#3399cc" },
+    };
 
-          if (result.success) {
-            await StoreAPI.placeOrder({
-              product_id: product.id || product._id,
-              quantity,
-              mobile: form.mobile,
-              address: form.address,
-              payment_method: "upi",
-              payment_status: "paid",
-              upi_id: upiId
-            });
+    const razor = new window.Razorpay(options);
+    razor.open();
 
-            alert("UPI Payment Successful! Order placed.");
-            setShowUPIPopup(false);
-            setShowPaymentPopup(false);
-            setShowOrderPopup(false);
-            setUpiId("");
-            navigate("/");
-          } else {
-            alert("UPI Payment Verification Failed");
-          }
-        },
-        modal: {
-          ondismiss: function() {
-            setPlacingOrder(false);
-          }
-        },
-        theme: { color: "#3399cc" },
-      };
-
-      const razor = new window.Razorpay(options);
-      razor.open();
-
-    } catch (error) {
-      console.error("UPI Payment error:", error);
-      alert("Unable to process UPI payment");
-      setPlacingOrder(false);
-    }
-  };
+  } catch (error) {
+    console.error("UPI Payment error:", error);
+    alert("Unable to process UPI payment. Please try another method.");
+    setPlacingOrder(false);
+  }
+};
 
   // ---- Cash on Delivery Handler ----
   const handleCashOnDelivery = async () => {
