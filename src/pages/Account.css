@@ -184,19 +184,15 @@
 }
 
 /* Mobile responsiveness */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* ✅ always 2 in a row */
+  gap: 1rem;
+}
+
+/* Mobile stays 1 column */
 @media (max-width: 600px) {
-  .account-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
   .products-grid {
     grid-template-columns: 1fr;
-  }
-  .action-buttons {
-    flex-direction: column;
-  }
-  .btn-logout,
-  .btn-debug {
-    width: 100%;
   }
 }

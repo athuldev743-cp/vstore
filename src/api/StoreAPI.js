@@ -66,6 +66,9 @@ export const placeOrder = async (data) =>
 // -------------------------
 // Vendor APIs
 // -------------------------
+// ✅ Vendor: get ONLY my products (uses JWT + /vendor/products)
+export const getMyProducts = async () => request("/api/store/vendor/products");
+
 export const applyVendor = async (data) =>
   request("/api/store/vendors/apply", { method: "POST", body: JSON.stringify(data) });
 
