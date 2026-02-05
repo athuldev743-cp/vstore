@@ -108,15 +108,10 @@ export default function App() {
       />
 
       <Route
-        path="/vendor/products"
-        element={
-          user?.role === "vendor" && user.vendorApproved ? (
-            <AddProduct />
-          ) : (
-            <Navigate to="/" />
-          )
-        }
-      />
+  path="/vendor/products"
+  element={user?.role === "vendor" ? <AddProduct /> : <Navigate to="/" />}
+/>
+
 
       <Route
         path="/account"
