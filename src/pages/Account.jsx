@@ -42,15 +42,11 @@ export default function Account({ onLogout }) {
           try {
             console.log("🔍 Vendor detected - fetching my products...");
 
-            // ✅ Primary: /api/store/vendor/products (JWT-based)
-            let myProducts = await StoreAPI.getMyProducts();
-
-            // ✅ Defensive fallback if API returns non-array
+            let myProducts = await StoreAPI.getMyProducts(); // ✅ /api/store/vendor/products
             if (!Array.isArray(myProducts)) myProducts = [];
 
             if (cancelled) return;
 
-            console.log("📦 My products loaded:", myProducts);
             setVendorProducts(myProducts);
           } catch (e) {
             console.error("❌ Error loading vendor products:", e);
@@ -67,7 +63,10 @@ export default function Account({ onLogout }) {
         if (cancelled) return;
 
         setError("Failed to load account data. You may have been logged out.");
-        if (String(err?.message || "").includes("Unauthorized") || String(err?.message || "").includes("401")) {
+        if (
+          String(err?.message || "").includes("Unauthorized") ||
+          String(err?.message || "").includes("401")
+        ) {
           handleLogout();
         }
       } finally {
@@ -76,7 +75,6 @@ export default function Account({ onLogout }) {
     }
 
     fetchUserData();
-
     return () => {
       cancelled = true;
     };
@@ -108,6 +106,7 @@ export default function Account({ onLogout }) {
       <header className="account-header">
         <h1 className="account-title">Account Details</h1>
 
+        {/* ✅ Works with your App.js route */}
         {user.role === "vendor" && (
           <button className="btn-add-product" onClick={() => navigate("/vendor/products")}>
             ➕ Add Product
@@ -117,6 +116,7 @@ export default function Account({ onLogout }) {
 
       {error && <div className="error-message">{error}</div>}
 
+      {/* Profile */}
       <section className="profile-section">
         <h2 className="section-title">Profile Information</h2>
 
@@ -152,6 +152,7 @@ export default function Account({ onLogout }) {
         </div>
       </section>
 
+      {/* Vendor Products */}
       {user.role === "vendor" && (
         <section className="vendor-products-section">
           <div className="section-header">
@@ -162,16 +163,15 @@ export default function Account({ onLogout }) {
           {productsLoading ? (
             <div className="loading-spinner">Loading your products...</div>
           ) : vendorProducts.length === 0 ? (
+            // ✅ Removed "Add Your First Product" button
             <div className="empty-state">
               <p className="empty-state-text">No products uploaded yet.</p>
-              <button className="btn-add-product" onClick={() => navigate("/vendor/products")}>
-                Add Your First Product
-              </button>
             </div>
           ) : (
             <div className="products-grid">
               {vendorProducts.map((product) => {
                 const pid = product?.id || product?._id;
+
                 return (
                   <div key={pid} className="product-card">
                     {product.image_url && (
@@ -203,7 +203,10 @@ export default function Account({ onLogout }) {
                       </div>
 
                       <div className="product-actions">
-                        <button className="btn-update-property" onClick={() => handleUpdateProperty(product)}>
+                        <button
+                          className="btn-update-property"
+                          onClick={() => handleUpdateProperty(product)}
+                        >
                           Update Property
                         </button>
                       </div>
@@ -216,6 +219,7 @@ export default function Account({ onLogout }) {
         </section>
       )}
 
+      {/* Actions */}
       <div className="action-buttons">
         <button className="btn-logout" onClick={handleLogout}>
           Logout
@@ -228,8 +232,6 @@ export default function Account({ onLogout }) {
             console.log("Token:", localStorage.getItem("token"));
             console.log("User:", user);
             console.log("Vendor Products:", vendorProducts);
-            console.log("User ID:", user?.id);
-            console.log("User Role:", user?.role);
           }}
         >
           Debug Info
