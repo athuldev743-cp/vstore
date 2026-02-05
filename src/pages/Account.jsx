@@ -15,8 +15,6 @@ export default function Account({ onLogout }) {
   const [error, setError] = useState("");
 
   const handleLogout = useCallback(() => {
-    console.log("Logout button clicked");
-
     if (onLogout && typeof onLogout === "function") {
       onLogout();
     } else {
@@ -40,18 +38,12 @@ export default function Account({ onLogout }) {
         if (me?.role === "vendor") {
           setProductsLoading(true);
           try {
-            console.log("🔍 Vendor detected - fetching my products...");
-
-            let myProducts = await StoreAPI.getMyProducts(); // ✅ /api/store/vendor/products
+            let myProducts = await StoreAPI.getMyProducts(); // /api/store/vendor/products
             if (!Array.isArray(myProducts)) myProducts = [];
-
             if (cancelled) return;
-
             setVendorProducts(myProducts);
           } catch (e) {
-            console.error("❌ Error loading vendor products:", e);
             if (cancelled) return;
-
             setVendorProducts([]);
             setError("Failed to load your products: " + (e?.message || "Unknown error"));
           } finally {
@@ -59,14 +51,9 @@ export default function Account({ onLogout }) {
           }
         }
       } catch (err) {
-        console.error("Failed to load account data:", err);
         if (cancelled) return;
-
         setError("Failed to load account data. You may have been logged out.");
-        if (
-          String(err?.message || "").includes("Unauthorized") ||
-          String(err?.message || "").includes("401")
-        ) {
+        if (String(err?.message || "").includes("Unauthorized") || String(err?.message || "").includes("401")) {
           handleLogout();
         }
       } finally {
@@ -83,6 +70,21 @@ export default function Account({ onLogout }) {
   const handleUpdateProperty = (product) => {
     const pid = product?.id || product?._id;
     navigate(`/product/${pid}/edit`, { state: { product } });
+  };
+
+  const handleDeleteProduct = async (product) => {
+    const pid = product?.id || product?._id;
+    if (!pid) return;
+
+    const ok = window.confirm("Delete this product? This cannot be undone.");
+    if (!ok) return;
+
+    try {
+      await StoreAPI.deleteProduct(pid);
+      setVendorProducts((prev) => prev.filter((p) => (p?.id || p?._id) !== pid));
+    } catch (e) {
+      alert(e?.message || "Failed to delete product");
+    }
   };
 
   if (loading) {
@@ -106,7 +108,6 @@ export default function Account({ onLogout }) {
       <header className="account-header">
         <h1 className="account-title">Account Details</h1>
 
-        {/* ✅ Works with your App.js route */}
         {user.role === "vendor" && (
           <button className="btn-add-product" onClick={() => navigate("/vendor/products")}>
             ➕ Add Product
@@ -116,7 +117,6 @@ export default function Account({ onLogout }) {
 
       {error && <div className="error-message">{error}</div>}
 
-      {/* Profile */}
       <section className="profile-section">
         <h2 className="section-title">Profile Information</h2>
 
@@ -152,7 +152,6 @@ export default function Account({ onLogout }) {
         </div>
       </section>
 
-      {/* Vendor Products */}
       {user.role === "vendor" && (
         <section className="vendor-products-section">
           <div className="section-header">
@@ -163,7 +162,6 @@ export default function Account({ onLogout }) {
           {productsLoading ? (
             <div className="loading-spinner">Loading your products...</div>
           ) : vendorProducts.length === 0 ? (
-            // ✅ Removed "Add Your First Product" button
             <div className="empty-state">
               <p className="empty-state-text">No products uploaded yet.</p>
             </div>
@@ -203,11 +201,12 @@ export default function Account({ onLogout }) {
                       </div>
 
                       <div className="product-actions">
-                        <button
-                          className="btn-update-property"
-                          onClick={() => handleUpdateProperty(product)}
-                        >
-                          Update Property
+                        <button className="btn-update-property" onClick={() => handleUpdateProperty(product)}>
+                          Update
+                        </button>
+
+                        <button className="btn-delete-product" onClick={() => handleDeleteProduct(product)}>
+                          Delete
                         </button>
                       </div>
                     </div>
@@ -219,7 +218,6 @@ export default function Account({ onLogout }) {
         </section>
       )}
 
-      {/* Actions */}
       <div className="action-buttons">
         <button className="btn-logout" onClick={handleLogout}>
           Logout

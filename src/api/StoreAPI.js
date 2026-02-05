@@ -133,6 +133,25 @@ export const updateProduct = async (productId, formData) => {
     throw err;
   }
 };
+export const deleteProduct = async (productId) => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Not logged in");
+
+  const res = await fetch(`${API_BASE}/api/store/products/${productId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  let data = {};
+  try { data = await res.json(); } catch {}
+
+  if (!res.ok) {
+    throw new Error(data.detail || `Failed to delete product (${res.status})`);
+  }
+
+  return data;
+};
+
 // Add this function to StoreAPI.js
 export const getVendorByUserId = async (userId) => {
   const vendors = await listVendors();
