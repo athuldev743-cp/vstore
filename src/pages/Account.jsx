@@ -109,9 +109,17 @@ export default function Account({ onLogout }) {
         <h1 className="account-title">Account Details</h1>
 
         {user.role === "vendor" && (
-          <button className="btn-add-product" onClick={() => navigate("/vendor/products")}>
-            ➕ Add Product
-          </button>
+         <button
+  className="btn-add-product"
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("ADD PRODUCT CLICKED");
+    navigate("/vendor/products");
+  }}
+>
+  ➕ Add Product
+</button>
         )}
       </header>
 

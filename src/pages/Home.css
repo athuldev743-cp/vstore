@@ -4,12 +4,30 @@
   margin: auto;
 }
 
+/* ✅ SAFE STICKY HEADER (won't steal clicks) */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #fff;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* ✅ If any pseudo overlay exists, don't capture taps */
+.sticky-header::before,
+.sticky-header::after {
+  pointer-events: none;
+}
+
+/* ✅ Ensure header itself is clickable normally */
 .home-header {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 1rem;
+  pointer-events: auto;
 }
 
 .home-header .logo {
@@ -51,6 +69,7 @@
   padding: 0.4rem;
   border-radius: 5px;
 }
+
 .refresh-btn .spinning {
   animation: spin 1s linear infinite;
 }
@@ -76,7 +95,6 @@
   margin-bottom: 0.5rem;
 }
 
-/* Medium screens and up - 3-4-5 columns using your current col classes */
 @media (max-width: 576px) {
   .row > div[class*="col-6"] {
     flex: 0 0 50%;
